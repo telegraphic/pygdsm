@@ -13,6 +13,12 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open("requirements.txt", 'r') as fh:
+    requirements = fh.read().splitlines()
+
+with open("requirements_test.txt", 'r') as fh:
+    test_requirements = fh.read().splitlines()
+
 setup(
     name='pygdsm',
 
@@ -69,7 +75,8 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'scipy', 'astropy', 'h5py', 'healpy', 'matplotlib', 'pyephem'],
+    install_requires=requirements,
+    tests_require=test_requirements,
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
