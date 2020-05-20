@@ -1,0 +1,25 @@
+dist: xenial
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+
+# command to install dependencies
+install:
+  - sudo apt-get update -qq
+  - pip install codecov
+  - pip install -r requirements.txt
+  - pip install .
+
+# command to install dependencies
+script:
+  - python setup.py test
+
+# Run code coverage
+after_success: codecov
+
+# Run on dev and master branches
+branches:
+  only:
+    - master
