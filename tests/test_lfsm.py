@@ -11,13 +11,6 @@ from pygdsm import GSMObserver2016, GSMObserver, LFSMObserver
 
 
 def test_compare_gsm_to_old():
-    g = GlobalSkyModel(freq_unit='MHz')
-    d = g.generate(408)
-    g.view()
-
-    gl = GlobalSkyModel2016(freq_unit='MHz')
-    dl = gl.generate(408)
-    gl.view()
 
     gl = LowFrequencySkyModel(freq_unit='MHz')
     dl = gl.generate(408)

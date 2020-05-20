@@ -7,23 +7,6 @@ import healpy as hp
 from .component_data import GSM_FILEPATH
 from .plot_utils import show_plt
 
-def rotate_map(hmap, rot_theta, rot_phi, nest=True):
-    nside = hp.npix2nside(len(hmap))
-
-    # Get theta, phi for non-rotated map
-    t, p = hp.pix2ang(nside, np.arange(hp.nside2npix(nside)), nest= nest)  # theta, phi
-
-    # Define a rotator
-    r = hp.Rotator(deg=False, rot=[rot_phi, rot_theta])
-
-    # Get theta, phi under rotated co-ordinates
-    trot, prot = r(t, p)
-
-    # Inerpolate map onto these co-ordinates
-    rot_map = hp.get_interp_val(hmap, trot, prot, nest= nest)
-
-    return rot_map
-
 
 class BaseSkyModel(object):
     """ Global sky model (GSM) class for generating sky models.

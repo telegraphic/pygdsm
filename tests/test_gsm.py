@@ -61,6 +61,7 @@ def compare_to_gsm():
         print("PYTHON:  ", b)
         print("FRAC AVG: %2.6f" % np.average(np.abs(1 - a/b)))
 
+
 def test_set_methods():
 
     gsm = GlobalSkyModel()
@@ -79,6 +80,7 @@ def test_set_methods():
     gsm.set_freq_unit('GHz')
     gsm.view()
 
+
 def test_speed():
     gsm = GlobalSkyModel(basemap='haslam')
 
@@ -87,6 +89,7 @@ def test_speed():
         gsm.generate(ff)
     t2 = time.time()
     print("Time taken: %2.2fs" % (t2 - t1))
+
 
 def test_write_fits():
     gsm = GlobalSkyModel()
@@ -100,6 +103,7 @@ def test_write_fits():
     assert np.allclose(d_fits, d_gsm)
 
     os.remove("test_write_fits.fits")
+
 
 if __name__ == "__main__":
     test_gsm_generate()
