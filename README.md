@@ -10,19 +10,12 @@ PyGDSM
 `PyGDSM` is a Python interface for global diffuse sky models: all-sky maps in Healpix format of diffuse Galactic radio emission.
 
 This package includes interfaces to:
- * The Global Sky Model (GSM2008) of [Oliveira-Costa et. al., (2008)](http://onlinelibrary.wiley.com/doi/10.1111/j.1365-2966.2008.13376.x/abstract), 
- * [Zheng et. al., (2016)](http://arxiv.org/abs/1605.04920), GSM2016. 
- * [The LWA1 Low Frequency Sky Model](https://lda10g.alliance.unm.edu/LWA1LowFrequencySkySurvey/), LFSS.
+ * **GSM2008:** A model of diffuse Galactic radio emission from 10 MHz to 100 GHz, [Oliveira-Costa et. al., (2008)](https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..247D/abstract).
+ * **GSM2016:** An improved model of diffuse galactic radio emission from 10 MHz to 5 THz, [Zheng et. al., (2016)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.464.3486Z/abstract).
+ * **LFSS:** The LWA1 Low Frequency Sky Survey (10-408 MHz) [Dowell et. al. (2017)](https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..247D/abstracthttp://arxiv.org/abs/1605.04920).
 
-from 10 MHz to 94 GHz (GSM2008), 10 MHz to 5 THz (GSM2016), and 10 MHz to 408 MHz (LFSS.)
+This is *not* a wrapper of the original code, it is a python-based equivalent that provides a uniform API with some additional features and advantages, such as healpy integration for imaging, and sky rotation for observed skies. 
 
-This is *not* a wrapper of the original code, it is a python-based equivalent
-that provides a useful API which has some additional features and advantages, such as healpy integration for imaging. 
-
-The GSM2008, GSM2016 and LFSS classes provided here are designed to have the same API (i.e. function names & usage).
-Instead of the original ASCII DAT files that contain the principal component analysis
-(PCA), from the GSM2008, data are stored in HDF5, which can be quickly read into memory, and takes up less space to boot.
-Similarly, the GSM2016 and LFSS data is converted into HDF5. 
 
 Quickstart
 ----------
@@ -35,20 +28,20 @@ The first thing to do will be to make sure you've got the dependencies:
 * [h5py](http://www.h5py.org/)
 * [astropy](http://www.astropy.org/)
 
-Then clone the directory
+Then you should be able to install with:
 
-        git clone https://github.com/telegraphic/PyGSM
-        
-You need to have git-lfs installed to download the data files. If you don't, you can get these via wget:
+        pip install git+https://github.com/telegraphic/pygdsm
 
-      wget -O gsm2016_components.h5 https://zenodo.org/record/3479985/files/gsm2016_components.h5?download=1
-      wget -O gsm_components.h5 https://zenodo.org/record/3479985/files/gsm_components.h5?download=1
+Alternatively, clone the directory:
 
-Which are hosted on [Zenodo](https://zenodo.org/record/3479985#.XaASx79S-AY).
+        git clone https://github.com/telegraphic/PyGDSM
+       
+An run `pip install .`. On first run, the sky model data will be downloaded from Zenodo. These are about 500 MB total, and will be downloaded into your astropy cache (`~/.astropy/`). The data are hosted on [Zenodo](https://zenodo.org/record/3479985#.XaASx79S-AY).
 
-You may then install this by running `python setup.py install`.
+Examples
+---------
 
-To get a quick feel of what `PyGSM` does, have a look at the 
+To get a quick feel of what `PyGDSM` does, have a look at the 
 [GSM2008 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGSM/blob/master/docs/pygsm_quickstart.ipynb), and the new
 [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGSM/blob/master/docs/pygsm2016_quickstart.ipynb).
 
@@ -98,31 +91,29 @@ Q & A
 References
 ----------
 
-The PCA data contained here is from http://space.mit.edu/~angelica/gsm/index.html and
-https://github.com/jeffzhen/gsm2016.
+The PCA data contained here is from:
+* GSM2008 http://space.mit.edu/~angelica/gsm/index.html 
+* GSM2016 https://github.com/jeffzhen/gsm2016
+* LFSS https://lda10g.alliance.unm.edu/LWA1LowFrequencySkySurvey/
 
-The original GSM2008 paper is:
 
 ```
-A. de Oliveira-Costa, M. Tegmark, B.M. Gaensler, J. Jonas, T.L. Landecker and P. Reich
 A model of diffuse Galactic radio emission from 10 MHz to 100 GHz
-Mon. Not. R. Astron. Soc. 388, 247-260 (2008)
-doi:10.111/j.1365-2966.2008.13376.x
-```
+A. de Oliveira-Costa, M. Tegmark, B.M. Gaensler, J. Jonas, T.L. Landecker and P. Reich
+MNRAS 388, 247-260 (2008)
+https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..247D/abstract
 
-Which is published in [MNRAS](http://onlinelibrary.wiley.com/doi/10.1111/j.1365-2966.2008.13376.x/abstract)
-and is also available on the [arXiv](http://arxiv.org/abs/0802.1525).
-
-And the GSM2016 paper is:
-
-```
-H. Zheng (MIT), M. Tegmark, J. Dillon, A. Liu, A. Neben, J. Jonas, P. Reich, W.Reich
 An Improved Model of Diffuse Galactic Radio Emission from 10 MHz to 5 THz
+H. Zheng, M. Tegmark, J. Dillon, A. Liu, A. Neben, J. Jonas, P. Reich, W.Reich
+MNRAS, 464, 3, 3486-3497 (2017)
+https://ui.adsabs.harvard.edu/abs/2017MNRAS.464.3486Z/abstract
+
+The LWA1 Low Frequency Sky Survey
+J. Dowell, G. B. Taylor, F. Schinzel, N. E. Kassim, K. Stovall
+MNRAS, 469, 4, 4537-4550 (2017)
 ```
 
-which is available on the [arXiv](http://arxiv.org/abs/1605.04920).
-
-PyGSM has an [ascl.net entry](https://ascl.net/1603.013):
+PyGSDM has an [ascl.net entry](https://ascl.net/1603.013):
 
 ```
 D. C. Price, 2016, 2.0.0, Astrophysics Source Code Library, 1603.013
@@ -131,4 +122,6 @@ D. C. Price, 2016, 2.0.0, Astrophysics Source Code Library, 1603.013
 License
 -------
 
-All *code* in PyGSM is licensed under the MIT license (not the underlying *data*). The PCA data, by Zheng et. al. is licensed under MIT also (see https://github.com/jeffzhen/gsm2016).
+All *code* in PyGSM is licensed under the MIT license (not the underlying *data*). 
+The PCA data, by Zheng et. al. is licensed under MIT also (see https://github.com/jeffzhen/gsm2016).
+
