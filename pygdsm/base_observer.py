@@ -65,8 +65,8 @@ class BaseObserver(ephem.Observer):
         sky_rotated = sky[pix0]
 
         # Generate a mask for below horizon
-        mask1 = self._phi + np.pi / 2 > 2 * np.pi
-        mask2 = self._phi < np.pi / 2
+        mask1 = g1 + np.pi / 2 > 2 * np.pi
+        mask2 = g1 < np.pi / 2
         mask = np.invert(np.logical_or(mask1, mask2))
 
         self.observed_sky = hp.ma(sky_rotated)

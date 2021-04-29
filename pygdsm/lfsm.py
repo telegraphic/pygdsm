@@ -86,6 +86,7 @@ class LowFrequencySkyModel(BaseSkyModel):
         self.generated_map_freqs = freqs
         return map_out
 
+
 class LFSMObserver(BaseObserver):
     def __init__(self):
         """ Initialize the Observer object.
