@@ -11,13 +11,36 @@ from .base_observer import BaseObserver
 class HaslamSkyModel(BaseSkyModel):
     """ Haslam destriped, desourced sky model """
 
-    def __init__(self,  freq_unit='MHz', spectral_index=-2.55):
+    def __init__(self,  freq_unit='MHz', spectral_index=-2.6):
         """ Global sky model (GSM) class for generating sky models.
 
         Parameters
         ----------
         freq_unit (str): Frequency unit to use, defaults to MHz
         spectral_index (float): Spectral index to use for calculations.
+
+        Notes
+        -----
+        This is a crude model; the sky's spectral index changes with sidereal time
+        and a singular spectral index is not realistic. Here are some measured values
+        at different frequencies:
+
+            Frequency        Spectral Index        Reference     Notes
+            50--100 MHz     si = -2.56 +/- 0.03    Mozdzen+19    LST 0--12 hr
+                                  2.46 +/- 0.01                  LST 18.2 hr
+            90--190 MHz     si = -2.61 +/- 0.01    Mozdzen+16    LST 0--12 hr
+                                 −2.50 +/- 0.02                  LST 17.7 hr
+            0.4--4.7 GHz 	si = −2.85 +/- 0.05    Dickinson+19
+            0.4--22.8 GHz 	si = −2.88 +/- 0.03    Dickinson+19
+            4.7--22.8 GHz 	si = −2.91 +/- 0.04    Dickinson+19
+            22.8--44 GHz 	si = −2.85 +/- 0.14    Dickinson+19
+
+        References
+        ----------
+        Mozdzen et al (2016), EDGES high-band, https://doi.org/10.1093/mnras/stw2696
+        Mozdzen et al (2019), EDGES low-band, https://doi.org/10.1093/mnras/sty3410
+        Dickinson et al (2019), C-BASS experiment, https://doi.org/10.1093/mnras/stz522
+
         """
         data_unit = 'K'
         basemap = 'Haslam'
