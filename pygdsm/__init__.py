@@ -7,3 +7,6 @@ from .pygsm2016 import GSMObserver2016
 
 from .lfsm import LowFrequencySkyModel
 from .lfsm import LFSMObserver
+
+from .haslam import HaslamSkyModel
+from .haslam import HaslamObserver

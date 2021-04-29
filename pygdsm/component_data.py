@@ -10,3 +10,6 @@ GSM2008_TEST_DATA = download_file('https://zenodo.org/record/3835582/files/gsm_f
 
 LFSM_FILEPATH = download_file('https://zenodo.org/record/3835582/files/lfsm.h5?download=1',
                               cache=True, show_progress=True)
+
+HASLAM_FILEPATH = download_file('https://lambda.gsfc.nasa.gov/data/foregrounds/haslam_2014/haslam408_dsds_Remazeilles2014.fits',
+                                cache=True, show_progress=True)

@@ -1,23 +1,40 @@
 import numpy as np
-from scipy.interpolate import interp1d, pchip
 import h5py
-from astropy import units
 import healpy as hp
-
-from .component_data import GSM_FILEPATH
+from astropy.io import fits
 from .plot_utils import show_plt
+
+def is_fits(filepath):
+    """
+    Check if file is a FITS file
+    Returns True of False
+
+    Parameters
+    ----------
+    filepath: str
+        Path to file
+    """
+    FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
+                      b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
+                      b"\x20\x54")
+    with open(str(filepath),'rb') as f:
+        try:
+            return f.read(30) == FITS_SIGNATURE
+        except FileNotFoundError as e:
+            print(e)
+            return False
 
 
 class BaseSkyModel(object):
     """ Global sky model (GSM) class for generating sky models.
     """
-    def __init__(self, name, h5path, freq_unit, data_unit, basemap):
+    def __init__(self, name, filepath, freq_unit, data_unit, basemap):
         """ Initialise basic sky model class
 
         Parameters
         ----------
         name (str):      Name of GSM
-        h5path (str):    Path to HDF5 data to load
+        filepath (str):    Path to HDF5 data / FITS data (healpix) to load
         freq_unit (str): Frequency unit (MHz / GHz / Hz)
         data_unit (str): Unit for pixel scale (e.g. K)
         basemap (str):   Map used as a basis for spatial structure in PCA fit.
@@ -27,7 +44,12 @@ class BaseSkyModel(object):
         Any GSM needs to supply a generate() function
         """
         self.name = name
-        self.h5 = h5py.File(h5path, "r")
+        if h5py.is_hdf5(filepath):
+            self.h5 = h5py.File(filepath, "r")
+        elif is_fits(filepath):
+            self.fits = fits.open(filepath, "readonly")
+        else:
+            raise RuntimeError(f"Cannot read HDF5/FITS file {filepath}")
         self.basemap = basemap
         self.freq_unit = freq_unit
         self.data_unit = data_unit
