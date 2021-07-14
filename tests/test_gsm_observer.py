@@ -4,8 +4,9 @@ import healpy as hp
 from datetime import datetime
 import numpy as np
 import os
+from astropy.time import Time
 
-def test_gsm_observer():
+def test_gsm_observer(show=False):
     """ Test GSMObserver() is working
     """
     (latitude, longitude, elevation) = ('37.2', '-118.2', 1222)
@@ -17,6 +18,8 @@ def test_gsm_observer():
     ov.generate(50)
     ov.view(logged=True)
     ov.view_observed_gsm(logged=True)
+    if show:
+        plt.show()
 
     (latitude, longitude, elevation) = ('37.2', '-118.2', 1222)
     ov = GSMObserver2016()
@@ -27,6 +30,8 @@ def test_gsm_observer():
     ov.generate(50)
     ov.view(logged=True)
     ov.view_observed_gsm(logged=True)
+    if show:
+        plt.show()
 
     (latitude, longitude, elevation) = ('37.2', '-118.2', 1222)
     ov = LFSMObserver()
@@ -37,6 +42,8 @@ def test_gsm_observer():
     ov.generate(50)
     ov.view(logged=True)
     ov.view_observed_gsm(logged=True)
+    if show:
+        plt.show()
 
 def test_observed_mollview():
     """ Generate animated maps of observing coverage over 24 hours """
@@ -76,6 +83,31 @@ def test_observed_mollview():
     os.system('convert -delay 20 generated_sky/ecliptic-*.png ecliptic.gif')
     os.system('convert -delay 20 generated_sky/equatorial-*.png equatorial.gif')
 
+
+def test_generate_with_and_without_args():
+    """ Test generating without frequency argument """
+    (latitude, longitude, elevation) = ('37.2', '-118.2', 1222)
+    ov = GSMObserver()
+    ov.lon = longitude
+    ov.lat = latitude
+    ov.elev = elevation
+    ov.date = datetime(2000, 1, 1, 23, 0)
+
+    ov.generate(50)
+
+    ov.date = datetime(2000, 1, 1, 22, 0)
+    ov.generate()
+
+    ov.generate(51)
+    ov.generate(52)
+    ov.generate()
+    now = Time(datetime.now())
+    ov.generate(obstime=now)
+    ov.generate(obstime=now)
+    ov.generate(obstime=now, freq=53)
+    ov.generate(obstime=now, freq=52)
+
 if __name__ == "__main__":
-    test_gsm_observer()
-    #test_observed_mollview()
+    test_gsm_observer(show=True)
+    test_observed_mollview()
+    test_generate_with_and_without_args()
