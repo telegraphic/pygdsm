@@ -4,6 +4,7 @@ import healpy as hp
 from datetime import datetime
 import numpy as np
 import os
+from astropy.time import Time
 
 def test_gsm_observer(show=False):
     """ Test GSMObserver() is working
@@ -83,7 +84,7 @@ def test_observed_mollview():
     os.system('convert -delay 20 generated_sky/equatorial-*.png equatorial.gif')
 
 
-def test_generate_without_freq_arg():
+def test_generate_with_and_without_args():
     """ Test generating without frequency argument """
     (latitude, longitude, elevation) = ('37.2', '-118.2', 1222)
     ov = GSMObserver()
@@ -97,7 +98,16 @@ def test_generate_without_freq_arg():
     ov.date = datetime(2000, 1, 1, 22, 0)
     ov.generate()
 
+    ov.generate(51)
+    ov.generate(52)
+    ov.generate()
+    now = Time(datetime.now())
+    ov.generate(obstime=now)
+    ov.generate(obstime=now)
+    ov.generate(obstime=now, freq=53)
+    ov.generate(obstime=now, freq=52)
+
 if __name__ == "__main__":
-    #test_gsm_observer(show=True)
-    #test_observed_mollview()
-    test_generate_without_freq_arg()
+    test_gsm_observer(show=True)
+    test_observed_mollview()
+    test_generate_with_and_without_args()
