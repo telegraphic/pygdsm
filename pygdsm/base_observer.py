@@ -29,13 +29,14 @@ class BaseObserver(ephem.Observer):
         self._setup()
 
     def _setup(self):
+        self._freq = 100
         # Generate mapping from pix <-> angles
-        self.gsm.generate(100)
+        self.gsm.generate(self._freq)
         self._n_pix  = hp.get_map_size(self.gsm.generated_map_data)
         self._n_side = hp.npix2nside(self._n_pix)
         self._theta, self._phi = hp.pix2ang(self._n_side, np.arange(self._n_pix))
 
-    def generate(self, freq):
+    def generate(self, freq=None):
         """ Generate the observed sky for the observer, based on the GSM.
 
         Parameters
@@ -49,14 +50,21 @@ class BaseObserver(ephem.Observer):
             Numpy array representing the healpix image, centered on zenith,
             with below the horizon masked.
         """
-        self.gsm.generate(freq)
+
+        # Only regenerate if freq has changed
+        if freq is not None:
+            if np.isclose(freq, self._freq):
+                pass
+            else:
+                self.gsm.generate(freq)
+                self._freq = freq
+
         sky = self.gsm.generated_map_data
 
         # Get RA and DEC of zenith
         ra_rad, dec_rad = self.radec_of(0, np.pi/2)
         ra_deg  = ra_rad / np.pi * 180
         dec_deg = dec_rad / np.pi * 180
-
 
         # Apply rotation
         hrot = hp.Rotator(rot=[ra_deg, dec_deg], coord=['G', 'C'], inv=True)
