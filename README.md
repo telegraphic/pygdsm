@@ -14,7 +14,7 @@ PyGDSM
 This package includes interfaces to:
  * **GSM2008:** A model of diffuse Galactic radio emission from 10 MHz to 100 GHz, [Oliveira-Costa et. al., (2008)](https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..247D/abstract). 
  * **GSM2016:** An improved model of diffuse galactic radio emission from 10 MHz to 5 THz, [Zheng et. al., (2016)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.464.3486Z/abstract).
- * **LFSS:** The LWA1 Low Frequency Sky Survey (10-408 MHz) [Dowell et. al. (2017)](https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..247D/abstracthttp://arxiv.org/abs/1605.04920). 
+ * **LFSS:** The LWA1 Low Frequency Sky Survey (10-408 MHz) [Dowell et. al. (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.469.4537D/abstract). 
  * **Haslam:** A frequency-scaled model using a spectral index, based on the [Haslam 408 MHz](https://lambda.gsfc.nasa.gov/product/foreground/fg_2014_haslam_408_info.cfm) all-sky map.
 
 In general, these are *not* wrappers of the original code (GSM2008 was written in Fortan and GSM2016 in C); instead they provides a uniform API with some additional features and advantages, such as healpy integration for imaging, and sky rotation for observed skies. 
