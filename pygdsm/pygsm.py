@@ -90,6 +90,7 @@ class GlobalSkyModel(BaseSkyModel):
 
         self.generated_map_data = None
         self.generated_map_freqs = None
+        self.nside = 512
 
     def update_interpolants(self):
        # Choose the PCA map to load from the HDF5 file

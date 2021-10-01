@@ -90,6 +90,35 @@ class BaseSkyModel(object):
 
         if show:
             show_plt()
+    
+    def get_sky_temperature(self, coords, freqs=None, include_cmb=True):
+        """ Get sky temperature at given coordinates.
+
+        Returns sky temperature at a given SkyCoord (e.g. Ra/Dec or galactic l/b).
+        Useful for estimating sky contribution to system temperature.
+
+        Parameters
+        ----------
+        coords (astropy.coordinates.SkyCoord): 
+            Sky Coordinates to compute temperature for.
+        freqs (None, float, or np.array):
+            frequencies to evaluate. If not set, will default to those supplied 
+            when generate() was called.
+        include_cmb (bool): 
+            Include a 2.725 K contribution from the CMB (default True).
+        """
+        
+        T_cmb = 2.725 if include_cmb else 0
+        
+        if freqs is not None:
+            self.generate(freqs)
+
+        pix = hp.ang2pix(self.nside, coords.galactic.l.deg, coords.galactic.b.deg, lonlat=True)
+        if self.generated_map_data.ndim == 2:
+            return self.generated_map_data[:, pix] + T_cmb
+        else:
+            return self.generated_map_data[pix] + T_cmb
+
 
     def write_fits(self, filename):
         """ Write out map data as FITS file.

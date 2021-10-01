@@ -82,6 +82,7 @@ class GlobalSkyModel2016(BaseSkyModel):
         super(GlobalSkyModel2016, self).__init__('GSM2016', GSM2016_FILEPATH, freq_unit, data_unit, basemap='')
 
         self.resolution = resolution
+        self.nside = 1024
 
         # Map data to load
         labels = ['Synchrotron', 'CMB', 'HI', 'Dust1', 'Dust2', 'Free-Free']

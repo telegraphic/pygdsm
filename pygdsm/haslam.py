@@ -12,7 +12,7 @@ class HaslamSkyModel(BaseSkyModel):
     """ Haslam destriped, desourced sky model """
 
     def __init__(self,  freq_unit='MHz', spectral_index=-2.6):
-        """ Global sky model (GSM) class for generating sky models.
+        """ Generate a sky model at a given frequency based off Haslam 408 MHz map
 
         Parameters
         ----------
@@ -21,6 +21,9 @@ class HaslamSkyModel(BaseSkyModel):
 
         Notes
         -----
+        The basemap is the destriped and desoruced Haslam map from Remazeilles (2015)
+        A T_CMB value of 2.725 K is subtracted to account for the microwave background component. 
+
         This is a crude model; the sky's spectral index changes with sidereal time
         and a singular spectral index is not realistic. Here are some measured values
         at different frequencies:
@@ -37,16 +40,18 @@ class HaslamSkyModel(BaseSkyModel):
 
         References
         ----------
+        Remazeilles et al (2015), improved Haslam map, https://doi.org/10.1093/mnras/stv1274 
         Mozdzen et al (2016), EDGES high-band, https://doi.org/10.1093/mnras/stw2696
         Mozdzen et al (2019), EDGES low-band, https://doi.org/10.1093/mnras/sty3410
         Dickinson et al (2019), C-BASS experiment, https://doi.org/10.1093/mnras/stz522
-
         """
         data_unit = 'K'
         basemap = 'Haslam'
+        T_cmb = 2.725
         super(HaslamSkyModel, self).__init__('Haslam', HASLAM_FILEPATH, freq_unit, data_unit, basemap)
         self.spectral_index = spectral_index
-        self.data = hp.read_map(self.fits, verbose=False, dtype=np.float64)
+        self.data = hp.read_map(self.fits, verbose=False, dtype=np.float64) - T_cmb
+        self.nside = 512
 
     def generate(self, freqs):
         """ Generate a global sky model at a given frequency or frequencies
@@ -70,7 +75,7 @@ class HaslamSkyModel(BaseSkyModel):
         if isinstance(freqs_mhz, float):
             freqs_mhz = np.array([freqs_mhz])
 
-        map_out = self.data * (freqs_mhz / 408.0) ** (self.spectral_index)
+        map_out = np.outer((freqs_mhz / 408.0) ** (self.spectral_index), self.data).squeeze()
 
         self.generated_map_data = map_out
         self.generated_map_freqs = freqs

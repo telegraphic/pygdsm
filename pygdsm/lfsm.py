@@ -33,6 +33,7 @@ class LowFrequencySkyModel(BaseSkyModel):
 
         self.pca_map = self.h5['lfsm_component_maps_3.0deg.dat'][:]
         self.pca_components =  self.h5['lfsm_components.dat'][:]
+        self.nside = 256
 
         freqs  = self.pca_components[:, 0]
         sigmas = self.pca_components[:, 1]
@@ -73,15 +74,22 @@ class LowFrequencySkyModel(BaseSkyModel):
             raise RuntimeError("Frequency values lie outside 10 MHz < f < 408 MHz")
 
         map_out = 0.0
-        for i, compFunc in enumerate(self.compFuncs):
-            map_out += compFunc(np.log(freqs_mhz)) * self.pca_map[:, i]
-        map_out *= np.exp(self.scaleFunc(np.log(freqs_mhz)))
+        if isinstance(freqs, np.ndarray):
+            if freqs.ndim > 0:
+                map_out = np.zeros(shape=(freqs.shape[0], hp.nside2npix(self.nside)))
+            else:
+                map_out = np.zeros(shape=(1, hp.nside2npix(self.nside))) 
+        else:
+            map_out = np.zeros(shape=(1, hp.nside2npix(self.nside)))
 
-        map_out =  rotate_equatorial_to_galactic(map_out)
+        for ff in range(map_out.shape[0]):
+            for i, compFunc in enumerate(self.compFuncs):
+                map_out[ff] += compFunc(np.log(freqs_mhz[ff])) * self.pca_map[:, i]
+            map_out[ff] *= np.exp(self.scaleFunc(np.log(freqs_mhz[ff])))
 
-        #print comps.shape, self.pca_map_data.shape, scaling.shape
-        #map_out = np.einsum('cf,pc,f->fp', comps, self.pca_map_data, scaling)
+            map_out[ff] =  rotate_equatorial_to_galactic(map_out[ff])
 
+        map_out = map_out.squeeze()
         self.generated_map_data = map_out
         self.generated_map_freqs = freqs
         return map_out
