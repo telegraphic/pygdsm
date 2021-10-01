@@ -25,7 +25,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2.0',
+    version='1.3.0',
 
     description='Python Global Sky Model of diffuse Galactic radio emission',
     long_description=long_description,
@@ -57,15 +57,13 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
 
     # What does your project relate to?
-    keywords='radio astronomy sky model galactic emission',
+    keywords='radio astronomy sky model galactic diffuse emission',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
