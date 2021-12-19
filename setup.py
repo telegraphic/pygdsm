@@ -29,6 +29,7 @@ setup(
 
     description='Python Global Sky Model of diffuse Galactic radio emission',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
     url='https://github.com/telegraphic/pygdsm',
@@ -49,7 +50,7 @@ setup(
         'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Science/Researcj',
+        'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Astronomy',
 
         # Pick your license as you wish (should match "license" above)
