@@ -84,8 +84,8 @@ class BaseObserver(ephem.Observer):
             pix0 = hp.ang2pix(self._n_side, g0, g1)
 
             # Generate a mask for below horizon
-            mask1 = g1 + np.pi / 2 > 2 * np.pi
-            mask2 = g1 < np.pi / 2
+            mask1 = self._phi + np.pi / 2 > 2 * np.pi
+            mask2 = self._phi < np.pi / 2
             mask = np.invert(np.logical_or(mask1, mask2))
             self._pix0 = pix0
             self._mask = mask
