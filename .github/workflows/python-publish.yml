@@ -25,6 +25,7 @@ jobs:
         sudo apt-get install build-essential git pkg-config libhdf5-dev -y
         python -m pip install --upgrade pip
         pip install setuptools wheel twine
+        
     - name: Build manylinux Python wheels
       uses: RalfG/python-wheels-manylinux-build@v0.4.2-manylinux2014_x86_64
       with:
@@ -35,4 +36,5 @@ jobs:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        twine upload dist/*-manylinux*.whl
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
