@@ -82,15 +82,16 @@ class GlobalSkyModel2016(BaseSkyModel):
         super(GlobalSkyModel2016, self).__init__('GSM2016', GSM2016_FILEPATH, freq_unit, data_unit, basemap='')
 
         self.resolution = resolution
-        self.nside = 1024
 
         # Map data to load
         labels = ['Synchrotron', 'CMB', 'HI', 'Dust1', 'Dust2', 'Free-Free']
         self.n_comp = len(labels)
 
         if resolution=='hi':
+            self.nside = 1024
             self.map_ni = np.array([self.h5['highres_%s_map'%lb][:] for lb in labels])
         else:
+            self.nside = 64
             self.map_ni = np.array(self.h5['lowres_maps'])
 
         self.spec_nf = self.h5['spectra'][:]
