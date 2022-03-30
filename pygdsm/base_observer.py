@@ -56,6 +56,35 @@ class BaseObserver(ephem.Observer):
             Numpy array representing the healpix image, centered on zenith,
             with below the horizon masked.
         """
+        self.gsm.generate(freq)
+        sky = self.gsm.generated_map_data
+
+        # Get RA and DEC of zenith
+        ra_zen, dec_zen = self.radec_of(0, np.pi/2)
+        ra_zen  *= (180 / np.pi)
+        dec_zen *= (180 / np.pi)
+
+        # Transform from Galactic coordinates to Equatorial
+        rot = hp.Rotator(coord=['G', 'C'])
+        eq_theta, eq_phi = rot(self._theta, self._phi)
+
+        # Convert from Equatorial colatitude and longitude to normal RA and DEC
+        dec = 90.0 - np.abs(eq_theta*(180/np.pi))
+        ra = ( (eq_phi + 2*np.pi) % (2*np.pi) )*(180/np.pi)
+
+        # Generate a mask for below horizon (distance from zenith > 90 deg)
+        dist = 2 * np.arcsin( np.sqrt( np.sin((dec_zen-dec)*(np.pi/180)/2)**2 + \
+                np.cos(dec_zen*(np.pi/180))*np.cos(dec*(np.pi/180))*np.sin((ra_zen-ra)*(np.pi/180)/2)**2 ) )
+        mask = dist > (np.pi/2)
+
+        # Apply rotation to convert from Galactic to Equatorial and center on zenith
+        hrot = hp.Rotator(rot=[ra_zen, dec_zen], coord=['G', 'C'], inv=True)
+        g0, g1 = hrot(self._theta, self._phi)
+        pix0 = hp.ang2pix(self._n_side, g0, g1)
+        sky_rotated = sky[pix0]
+        mask_rotated = mask[pix0]
+        dec_rotated = dec[pix0]
+        ra_rotated = ra[pix0]
 
         # Check if freq or obstime has changed
         if freq is not None:
@@ -94,7 +123,9 @@ class BaseObserver(ephem.Observer):
         sky = self.gsm.generated_map_data
         sky_rotated = sky[self._pix0]
         self.observed_sky = hp.ma(sky_rotated)
-        self.observed_sky.mask = self._mask
+        self.observed_sky.mask = mask_rotated
+        self._observed_ra = ra_rotated
+        self._observed_dec = dec_rotated
 
         return self.observed_sky
 
