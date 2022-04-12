@@ -39,6 +39,8 @@ class BaseObserver(ephem.Observer):
 
         self._pix0 = None
         self._mask = None
+        self._observed_ra = None
+        self._observed_dec = None
 
     def generate(self, freq=None, obstime=None):
         """ Generate the observed sky for the observer, based on the GSM.
@@ -56,42 +58,14 @@ class BaseObserver(ephem.Observer):
             Numpy array representing the healpix image, centered on zenith,
             with below the horizon masked.
         """
-        self.gsm.generate(freq)
-        sky = self.gsm.generated_map_data
-
-        # Get RA and DEC of zenith
-        ra_zen, dec_zen = self.radec_of(0, np.pi/2)
-        ra_zen  *= (180 / np.pi)
-        dec_zen *= (180 / np.pi)
-
-        # Transform from Galactic coordinates to Equatorial
-        rot = hp.Rotator(coord=['G', 'C'])
-        eq_theta, eq_phi = rot(self._theta, self._phi)
-
-        # Convert from Equatorial colatitude and longitude to normal RA and DEC
-        dec = 90.0 - np.abs(eq_theta*(180/np.pi))
-        ra = ( (eq_phi + 2*np.pi) % (2*np.pi) )*(180/np.pi)
-
-        # Generate a mask for below horizon (distance from zenith > 90 deg)
-        dist = 2 * np.arcsin( np.sqrt( np.sin((dec_zen-dec)*(np.pi/180)/2)**2 + \
-                np.cos(dec_zen*(np.pi/180))*np.cos(dec*(np.pi/180))*np.sin((ra_zen-ra)*(np.pi/180)/2)**2 ) )
-        mask = dist > (np.pi/2)
-
-        # Apply rotation to convert from Galactic to Equatorial and center on zenith
-        hrot = hp.Rotator(rot=[ra_zen, dec_zen], coord=['G', 'C'], inv=True)
-        g0, g1 = hrot(self._theta, self._phi)
-        pix0 = hp.ang2pix(self._n_side, g0, g1)
-        sky_rotated = sky[pix0]
-        mask_rotated = mask[pix0]
-        dec_rotated = dec[pix0]
-        ra_rotated = ra[pix0]
-
-        # Check if freq or obstime has changed
-        if freq is not None:
+        # Check to see if frequency has changed.
+        if freq is not None: 
             if not np.isclose(freq, self._freq):
                 self.gsm.generate(freq)
                 self._freq = freq
-
+        
+        sky = self.gsm.generated_map_data
+        
         # Check if time has changed -- astropy allows None == Time() comparison
         if obstime == self._time or obstime is None:
             time_has_changed = False
@@ -100,32 +74,43 @@ class BaseObserver(ephem.Observer):
             self._time = Time(obstime)  # This will catch datetimes, but Time() object should be passed
             self.date  = obstime.to_datetime()
 
-        # Rotation is quite slow, only recompute if time has changed, or it has never been run
-        if time_has_changed or self.observed_sky is None or self._pix0 is None or self._mask is None:
+        # Rotation is quite slow, only recompute if time or frequency has changed, or it has never been run
+        if time_has_changed or self.observed_sky is None:
             # Get RA and DEC of zenith
-            ra_rad, dec_rad = self.radec_of(0, np.pi/2)
-            ra_deg  = ra_rad / np.pi * 180
-            dec_deg = dec_rad / np.pi * 180
+            ra_zen, dec_zen = self.radec_of(0, np.pi/2)
+            ra_zen  *= (180 / np.pi)
+            dec_zen *= (180 / np.pi)
 
-            # Apply rotation
-            hrot = hp.Rotator(rot=[ra_deg, dec_deg], coord=['G', 'C'], inv=True)
-            g0, g1 = hrot(self._theta, self._phi)
-            pix0 = hp.ang2pix(self._n_side, g0, g1)
+            # Transform from Galactic coordinates to Equatorial
+            rot = hp.Rotator(coord=['G', 'C'])
+            eq_theta, eq_phi = rot(self._theta, self._phi)
 
-            # Generate a mask for below horizon
-            mask1 = self._phi + np.pi / 2 > 2 * np.pi
-            mask2 = self._phi < np.pi / 2
-            mask = np.invert(np.logical_or(mask1, mask2))
-            self._pix0 = pix0
+            # Convert from Equatorial colatitude and longitude to normal RA and DEC
+            dec = 90.0 - np.abs(eq_theta*(180/np.pi))
+            ra = ( (eq_phi + 2*np.pi) % (2*np.pi) )*(180/np.pi)
+
+            # Generate a mask for below horizon (distance from zenith > 90 deg)
+            dist = 2 * np.arcsin( np.sqrt( np.sin((dec_zen-dec)*(np.pi/180)/2)**2 + \
+                    np.cos(dec_zen*(np.pi/180))*np.cos(dec*(np.pi/180))*np.sin((ra_zen-ra)*(np.pi/180)/2)**2 ) )
+            mask = dist > (np.pi/2)
             self._mask = mask
 
-        # Apply rotation and mask
-        sky = self.gsm.generated_map_data
+            # Apply rotation to convert from Galactic to Equatorial and center on zenith
+            hrot = hp.Rotator(rot=[ra_zen, dec_zen], coord=['G', 'C'], inv=True)
+            g0, g1 = hrot(self._theta, self._phi)
+            pix0 = hp.ang2pix(self._n_side, g0, g1)
+            self._pix0 = pix0
+
+            dec_rotated = dec[self._pix0]
+            ra_rotated = ra[self._pix0]
+            self._observed_ra = ra_rotated
+            self._observed_dec = dec_rotated
+ 
         sky_rotated = sky[self._pix0]
+        mask_rotated = self._mask[self._pix0]
+
         self.observed_sky = hp.ma(sky_rotated)
         self.observed_sky.mask = mask_rotated
-        self._observed_ra = ra_rotated
-        self._observed_dec = dec_rotated
 
         return self.observed_sky
 
