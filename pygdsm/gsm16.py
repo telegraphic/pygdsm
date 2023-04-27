@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.interpolate import interp1d, pchip
 import h5py
 from astropy import units
 import healpy as hp
@@ -44,11 +45,11 @@ def rotate_map(hmap, rot_theta, rot_phi, nest=True):
     return rot_map
 
 
-class GlobalSkyModel2016(BaseSkyModel):
+class GlobalSkyModel16(BaseSkyModel):
     """ Global sky model (GSM) class for generating sky models.
     """
 
-    def __init__(self, freq_unit='MHz', data_unit='TCMB', resolution='hi', theta_rot=0, phi_rot=0):
+    def __init__(self, freq_unit='MHz', data_unit='TCMB', resolution='hi', theta_rot=0, phi_rot=0, interpolation='pchip'):
         """ Global sky model (GSM) class for generating sky models.
 
         Upon initialization, the map PCA data are loaded into memory and interpolation
@@ -63,9 +64,19 @@ class GlobalSkyModel2016(BaseSkyModel):
         resolution: 'hi' or 'low'
             Resolution of output map. Either 300 arcmin (low) or 24 arcmin (hi).
             For frequencies under 10 GHz, output is 48 arcmin.
+        interpolation: 'cubic' or 'pchip'
+            Choose whether to use cubic spline interpolation or
+            piecewise cubic hermitian interpolating polynomial (PCHIP).
+            PCHIP is designed to never locally overshoot data, whereas
+            splines are designed to have smooth first and second derivatives.
 
         Notes
         -----
+        The scipy `interp1d` function does not allow one to explicitly
+        set second derivatives to zero at the endpoints, as is done in
+        the original GSM. As such, results will differ. Further, we default
+        to use PCHIP interpolation.
+
 
         """
 
@@ -79,8 +90,9 @@ class GlobalSkyModel2016(BaseSkyModel):
         else:
             raise RuntimeError("RESOLUTION ERROR: Must be either hi or low, not %s" % resolution)
 
-        super(GlobalSkyModel2016, self).__init__('GSM2016', GSM2016_FILEPATH, freq_unit, data_unit, basemap='')
+        super(GlobalSkyModel16, self).__init__('GSM2016', GSM2016_FILEPATH, freq_unit, data_unit, basemap='')
 
+        self.interpolation_method = interpolation
         self.resolution = resolution
 
         # Map data to load
@@ -137,26 +149,45 @@ class GlobalSkyModel2016(BaseSkyModel):
 
         spec_nf = self.spec_nf
         nfreq = spec_nf.shape[1]
+        
+        # Now borrow code from the orignal GSM2008 model to do a sensible interpolation
 
-        output = np.zeros((len(freqs_ghz), map_ni.shape[1]), dtype='float32')
+        pca_freqs_ghz = spec_nf[0]
+        pca_scaling   = spec_nf[1]
+        pca_comps     = spec_nf[2:]
+         # Interpolate to the desired frequency values
+        ln_pca_freqs = np.log(pca_freqs_ghz)
+        if self.interpolation_method == 'cubic':
+            spl_scaling = interp1d(ln_pca_freqs, np.log(pca_scaling), kind='cubic')
+            spl1 = interp1d(ln_pca_freqs,   pca_comps[0],   kind='cubic')
+            spl2 = interp1d(ln_pca_freqs,   pca_comps[1],   kind='cubic')
+            spl3 = interp1d(ln_pca_freqs,   pca_comps[2],   kind='cubic')
+            spl4 = interp1d(ln_pca_freqs,   pca_comps[3],   kind='cubic')
+            spl5 = interp1d(ln_pca_freqs,   pca_comps[4],   kind='cubic')
+            spl6 = interp1d(ln_pca_freqs,   pca_comps[5],   kind='cubic')
+
+        else:
+            spl_scaling = pchip(ln_pca_freqs, np.log(pca_scaling))
+            spl1 = pchip(ln_pca_freqs,   pca_comps[0])
+            spl2 = pchip(ln_pca_freqs,   pca_comps[1])
+            spl3 = pchip(ln_pca_freqs,   pca_comps[2])
+            spl4 = pchip(ln_pca_freqs,   pca_comps[3])
+            spl5 = pchip(ln_pca_freqs,   pca_comps[4])
+            spl6 = pchip(ln_pca_freqs,   pca_comps[5])
+            
+        self.interp_comps = (spl_scaling, spl1, spl2, spl3, spl4, spl5, spl6)
+     
+        ln_freqs = np.log(freqs_ghz)
+        comps = np.row_stack((spl1(ln_freqs), spl2(ln_freqs), spl3(ln_freqs), spl4(ln_freqs), spl5(ln_freqs), spl6(ln_freqs)))
+        scaling = np.exp(spl_scaling(ln_freqs))
+        
+        # Finally, compute the dot product via einsum (awesome function)
+        # c=comp, f=freq, p=pixel. We want to dot product over c for each freq
+        #print comps.shape, self.pca_map_data.shape, scaling.shape
+        
+        output = np.single(np.einsum('cf,pc,f->fp', comps, map_ni.T, scaling))
+        
         for ifreq, freq in enumerate(freqs_ghz):
-
-            left_index = -1
-            for i in range(nfreq - 1):
-                if spec_nf[0, i] <= freq <= spec_nf[0, i + 1]:
-                    left_index = i
-                    break
-
-            # Do the interpolation
-            interp_spec_nf = np.copy(spec_nf)
-            interp_spec_nf[0:2] = np.log10(interp_spec_nf[0:2])
-            x1 = interp_spec_nf[0, left_index]
-            x2 = interp_spec_nf[0, left_index + 1]
-            y1 = interp_spec_nf[1:, left_index]
-            y2 = interp_spec_nf[1:, left_index + 1]
-            x = np.log10(freq)
-            interpolated_vals = (x * (y2 - y1) + x2 * y1 - x1 * y2) / (x2 - x1)
-            output[ifreq] = np.sum(10.**interpolated_vals[0] * (interpolated_vals[1:, None] * map_ni), axis=0)
 
             output[ifreq] = hp.pixelfunc.reorder(output[ifreq], n2r=True)
 
@@ -181,11 +212,10 @@ class GlobalSkyModel2016(BaseSkyModel):
         return output
 
 
-class GSMObserver2016(BaseObserver):
+class GSMObserver16(BaseObserver):
     def __init__(self):
         """ Initialize the Observer object.
 
         Calls ephem.Observer.__init__ function and adds on gsm
         """
-        super(GSMObserver2016, self).__init__(gsm=GlobalSkyModel2016)
-
+        super(GSMObserver16, self).__init__(gsm=GlobalSkyModel16)

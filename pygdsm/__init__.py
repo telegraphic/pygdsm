@@ -1,9 +1,11 @@
 
-from .pygdsm import GlobalSkyModel
-from .pygdsm import GSMObserver
+from .gsm08 import GlobalSkyModel
+from .gsm08 import GSMObserver
 
-from .pygdsm2016 import GlobalSkyModel2016
-from .pygdsm2016 import GSMObserver2016
+GlobalSkyModel08 = GlobalSkyModel
+
+from .gsm16 import GlobalSkyModel16
+from .gsm16 import GSMObserver16
 
 from .lfsm import LowFrequencySkyModel
 from .lfsm import LFSMObserver
