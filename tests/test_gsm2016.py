@@ -3,6 +3,7 @@ sys.path.append("/workdata/pygdsm")
 
 import pylab as plt
 import healpy as hp
+import numpy as np
 from datetime import datetime
 
 import pytest
