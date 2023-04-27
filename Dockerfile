@@ -7,7 +7,7 @@ RUN pip --no-cache-dir install \
         h5py \
         healpy
 
-WORKDIR /pygsm
+WORKDIR /pygdsm
 COPY . .
 RUN python setup.py install
 

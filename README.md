@@ -45,8 +45,8 @@ Examples
 ---------
 
 To get a quick feel of what `PyGDSM` does, have a look at the 
-[GSM2008 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGSM/blob/master/docs/pygsm_quickstart.ipynb), and the new
-[GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGSM/blob/master/docs/pygsm2016_quickstart.ipynb).
+[GSM2008 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm_quickstart.ipynb), and the new
+[GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm2016_quickstart.ipynb).
 
 Q & A
 -----
@@ -59,7 +59,7 @@ Q & A
      can do more stuff more efficiently. For example: you can view a sky model in a healpy 
      image; you can write a sky model to a Healpix FITS file; and believe it or not, the 
      Python implementation is *much faster*. Have a look at the 
-     [quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGSM/blob/master/docs/pygsm_quickstart.ipynb)
+     [quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm_quickstart.ipynb)
      to get a feel for what `PyGDSM` does.
 
 **Q. Are the outputs of `gsm.f` and `pygdsm` identical?**.  
@@ -74,8 +74,8 @@ Q & A
      `pygdsm` provides two classes: `GlobalSkyModel2016()` and `GSMObserver2016()`, which once instantiated
      provide methods for programatically generating sky models. The Zheng et. al. github repo is a 
      simple, low-dependency, command line tool. Have a look at the 
-     [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGSM/blob/master/docs/pygsm2016_quickstart.ipynb)
-     to get a feel for what `PyGSM` does.
+     [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm2016_quickstart.ipynb)
+     to get a feel for what `PyGDSM` does.
 
 **Q. Why does this package download so much data when first run?**
      The package size is dominated by the PCA healpix maps, which have about 3 million points each.
@@ -127,6 +127,6 @@ D. C. Price, 2016, 2.0.0, Astrophysics Source Code Library, 1603.013
 License
 -------
 
-All *code* in PyGSM is licensed under the MIT license (not the underlying *data*). 
+All *code* in PyGDSM is licensed under the MIT license (not the underlying *data*). 
 The PCA data, by Zheng et. al. is licensed under MIT also (see https://github.com/jeffzhen/gsm2016).
 
