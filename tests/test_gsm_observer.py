@@ -1,4 +1,4 @@
-from pygdsm import GSMObserver, GSMObserver2016, LFSMObserver
+from pygdsm import GSMObserver, GSMObserver16, LFSMObserver
 import pylab as plt
 import healpy as hp
 from datetime import datetime
@@ -22,7 +22,7 @@ def test_gsm_observer(show=False):
         plt.show()
 
     (latitude, longitude, elevation) = ('37.2', '-118.2', 1222)
-    ov = GSMObserver2016()
+    ov = GSMObserver16()
     ov.lon = longitude
     ov.lat = latitude
     ov.elev = elevation

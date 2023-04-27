@@ -6,8 +6,8 @@ import pylab as plt
 import healpy as hp
 from datetime import datetime
 
-from pygdsm import GlobalSkyModel2016, GlobalSkyModel, LowFrequencySkyModel
-from pygdsm import GSMObserver2016, GSMObserver, LFSMObserver
+from pygdsm import GlobalSkyModel16, GlobalSkyModel, LowFrequencySkyModel
+from pygdsm import GSMObserver16, GSMObserver, LFSMObserver
 
 
 def test_compare_gsm_to_old():

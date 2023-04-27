@@ -7,13 +7,12 @@ from datetime import datetime
 
 import pytest
 
-from pygdsm import GlobalSkyModel2016, GSMObserver
-from pygdsm import GlobalSkyModel
-from pygdsm import GSMObserver2016
+from pygdsm import GlobalSkyModel16, GSMObserver16
+from pygdsm import GlobalSkyModel, GSMObserver
 
 
 def test_compare_gsm_to_old():
-    g = GlobalSkyModel2016(freq_unit='GHz', resolution='hi', data_unit='TCMB')
+    g = GlobalSkyModel16(freq_unit='GHz', resolution='hi', data_unit='TCMB')
     d = g.generate(0.408)
     g.view()
 
@@ -26,7 +25,7 @@ def test_observer_test():
 
     # Setup observatory location - in this case, Parkes Australia
     (latitude, longitude, elevation) = ('-32.998370', '148.263659', 100)
-    ov = GSMObserver2016()
+    ov = GSMObserver16()
     ov.lon = longitude
     ov.lat = latitude
     ov.elev = elevation
@@ -45,26 +44,46 @@ def test_observer_test():
     d = ov.view(logged=True)
     plt.show()
 
+def test_interp():
+    f = np.arange(40, 80, 5)
+    for interp in ('pchip', 'cubic'):
+        for SkyModel in (GlobalSkyModel, GlobalSkyModel16):
+            name = str(SkyModel).strip("<>").split('.')[-1].strip("' ")
+            gsm = SkyModel(freq_unit='MHz', interpolation=interp)
+            d = gsm.generate(f)
+
+            sky_spec = d.mean(axis=1)
+            fit = np.poly1d(np.polyfit(f, sky_spec, 5))(f)
+
+            plt.plot(f, sky_spec - fit, label=f'{name}: {interp}')
+
+    plt.xlabel("Frequency [MHz]")
+    plt.ylabel("Residual [K]")
+    plt.legend()
+    plt.show()
+
+
 
 def test_gsm_opts():
-    g = GlobalSkyModel2016(freq_unit='GHz', resolution='hi', data_unit='TCMB')
+    g = GlobalSkyModel16(freq_unit='GHz', resolution='hi', data_unit='TCMB')
     d = g.generate(0.408)
-    g = GlobalSkyModel2016(freq_unit='GHz', resolution='lo', data_unit='MJysr')
+    g = GlobalSkyModel16(freq_unit='GHz', resolution='lo', data_unit='MJysr')
     d = g.generate(0.408)
-    g = GlobalSkyModel2016(freq_unit='MHz', resolution='lo', data_unit='TRJ')
+    g = GlobalSkyModel16(freq_unit='MHz', resolution='lo', data_unit='TRJ')
     d = g.generate(408)
 
     with pytest.raises(RuntimeError):
         g.generate(5e12)
 
     with pytest.raises(RuntimeError):
-        g = GlobalSkyModel2016(resolution='oh_hai')
+        g = GlobalSkyModel16(resolution='oh_hai')
 
     with pytest.raises(RuntimeError):
-        g = GlobalSkyModel2016(data_unit='furlongs/fortnight')
+        g = GlobalSkyModel16(data_unit='furlongs/fortnight')
 
 
 if __name__ == "__main__":
     test_compare_gsm_to_old()
     test_observer_test()
     test_gsm_opts()
+    test_interp()

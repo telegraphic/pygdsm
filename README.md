@@ -71,7 +71,7 @@ Q & A
      the two outputs are indeed comparable. 
 
 **Q. What's the difference between this and the [Zheng et. al. github repo](https://github.com/jeffzhen/gsm2016)?**
-     `pygdsm` provides two classes: `GlobalSkyModel2016()` and `GSMObserver2016()`, which once instantiated
+     `pygdsm` provides two classes: `GlobalSkyModel16()` and `GSMObserver16()`, which once instantiated
      provide methods for programatically generating sky models. The Zheng et. al. github repo is a 
      simple, low-dependency, command line tool. Have a look at the 
      [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm2016_quickstart.ipynb)
