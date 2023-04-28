@@ -1,3 +1,4 @@
+[![ascl:1603.013](https://img.shields.io/badge/ascl-1603.013-blue.svg)](https://ascl.net/1603.013)
 [![codecov](https://codecov.io/gh/telegraphic/pygdsm/branch/master/graph/badge.svg)](https://codecov.io/gh/telegraphic/pygdsm)
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) 
  
