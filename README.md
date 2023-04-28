@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/telegraphic/pygdsm.svg?branch=master)](https://travis-ci.org/telegraphic/pygdsm)
 [![codecov](https://codecov.io/gh/telegraphic/pygdsm/branch/master/graph/badge.svg)](https://codecov.io/gh/telegraphic/pygdsm)
 [![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/) 
  
