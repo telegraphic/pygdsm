@@ -82,6 +82,16 @@ def test_gsm_opts():
     with pytest.raises(RuntimeError):
         g = GlobalSkyModel16(data_unit='furlongs/fortnight')
 
+def test_cmb_removal():
+    g = GlobalSkyModel16(freq_unit='GHz', resolution='lo', data_unit='TCMB', include_cmb=False)
+    sky_no_cmb = g.generate(400)
+    g = GlobalSkyModel16(freq_unit='GHz', resolution='lo', data_unit='TCMB', include_cmb=True)
+    sky_with_cmb = g.generate(400)    
+
+    T_cmb = (sky_with_cmb - sky_no_cmb).mean()
+    print(T_cmb)
+    assert np.isclose(T_cmb, 2.725)
+
 
 if __name__ == "__main__":
     test_compare_gsm_to_old()

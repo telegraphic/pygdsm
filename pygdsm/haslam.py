@@ -7,18 +7,20 @@ from .component_data import HASLAM_FILEPATH
 from .base_skymodel import BaseSkyModel
 from .base_observer import BaseObserver
 
+T_CMB = 2.725
 
 class HaslamSkyModel(BaseSkyModel):
     """ Haslam destriped, desourced sky model """
 
-    def __init__(self,  freq_unit='MHz', spectral_index=-2.6):
+    def __init__(self,  freq_unit='MHz', spectral_index=-2.6, include_cmb=False):
         """ Generate a sky model at a given frequency based off Haslam 408 MHz map
 
         Parameters
         ----------
         freq_unit (str): Frequency unit to use, defaults to MHz
         spectral_index (float): Spectral index to use for calculations.
-
+        include_cmb (bool):  Choose whether to include the CMB. Defaults to False. A value of
+                             T_CMB = 2.725 K is used if True.
         Notes
         -----
         The basemap is the destriped and desoruced Haslam map from Remazeilles (2015)
@@ -47,11 +49,13 @@ class HaslamSkyModel(BaseSkyModel):
         """
         data_unit = 'K'
         basemap = 'Haslam'
-        T_cmb = 2.725
+
         super(HaslamSkyModel, self).__init__('Haslam', HASLAM_FILEPATH, freq_unit, data_unit, basemap)
         self.spectral_index = spectral_index
-        self.data = hp.read_map(self.fits, verbose=False, dtype=np.float64) - T_cmb
+        self.data = hp.read_map(self.fits, verbose=False, dtype=np.float64) - T_CMB
         self.nside = 512
+
+        self.include_cmb = include_cmb
 
     def generate(self, freqs):
         """ Generate a global sky model at a given frequency or frequencies
@@ -77,6 +81,8 @@ class HaslamSkyModel(BaseSkyModel):
 
         map_out = np.outer((freqs_mhz / 408.0) ** (self.spectral_index), self.data).squeeze()
 
+        if self.include_cmb:
+            map_out += T_CMB
         self.generated_map_data = map_out
         self.generated_map_freqs = freqs
         return map_out

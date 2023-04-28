@@ -49,7 +49,7 @@ class GlobalSkyModel16(BaseSkyModel):
     """ Global sky model (GSM) class for generating sky models.
     """
 
-    def __init__(self, freq_unit='MHz', data_unit='TCMB', resolution='hi', theta_rot=0, phi_rot=0, interpolation='pchip'):
+    def __init__(self, freq_unit='MHz', data_unit='TCMB', resolution='hi', theta_rot=0, phi_rot=0, interpolation='pchip', include_cmb=False):
         """ Global sky model (GSM) class for generating sky models.
 
         Upon initialization, the map PCA data are loaded into memory and interpolation
@@ -69,6 +69,9 @@ class GlobalSkyModel16(BaseSkyModel):
             piecewise cubic hermitian interpolating polynomial (PCHIP).
             PCHIP is designed to never locally overshoot data, whereas
             splines are designed to have smooth first and second derivatives.
+        include_cmb: bool (default False)
+            Choose whether to include the CMB. Defaults to False. A value of
+            T_CMB = 2.725 K is used.
 
         Notes
         -----
@@ -94,6 +97,7 @@ class GlobalSkyModel16(BaseSkyModel):
 
         self.interpolation_method = interpolation
         self.resolution = resolution
+        self.include_cmb = include_cmb
 
         # Map data to load
         labels = ['Synchrotron', 'CMB', 'HI', 'Dust1', 'Dust2', 'Free-Free']
@@ -187,9 +191,14 @@ class GlobalSkyModel16(BaseSkyModel):
         
         output = np.single(np.einsum('cf,pc,f->fp', comps, map_ni.T, scaling))
         
-        for ifreq, freq in enumerate(freqs_ghz):
 
+        for ifreq, freq in enumerate(freqs_ghz):
+            
             output[ifreq] = hp.pixelfunc.reorder(output[ifreq], n2r=True)
+
+            # DCP 2023.04.28 - Remove CMB as default
+            if self.include_cmb is False:
+                output -=  K_CMB2MJysr(T, 1e9 * freq)
 
             if self.data_unit == 'TCMB':
                 conversion = 1. / K_CMB2MJysr(1., 1e9 * freq)
@@ -199,7 +208,6 @@ class GlobalSkyModel16(BaseSkyModel):
                 conversion = 1.
             output[ifreq] *= conversion
 
-#            output.append(result)
 
         if len(output) == 1:
             output = output[0]
