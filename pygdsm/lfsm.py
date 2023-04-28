@@ -7,6 +7,7 @@ from .component_data import LFSM_FILEPATH
 from .base_skymodel import BaseSkyModel
 from .base_observer import BaseObserver
 
+T_CMB = 2.725
 
 def rotate_equatorial_to_galactic(map):
     """
@@ -24,8 +25,14 @@ class LowFrequencySkyModel(BaseSkyModel):
     """ LWA1 Low Frequency Sky Model
     """
 
-    def __init__(self,  freq_unit='MHz'):
+    def __init__(self,  freq_unit='MHz', include_cmb=False):
         """ Global sky model (GSM) class for generating sky models.
+
+        Parameters
+        ----------
+        freq_unit (str): Frequency unit to use, defaults to MHz
+        include_cmb (bool):  Choose whether to include the CMB. Defaults to False. A value of
+                             T_CMB = 2.725 K is used if True.
         """
         data_unit = 'K'
         basemap = 'LFSS'
@@ -34,6 +41,8 @@ class LowFrequencySkyModel(BaseSkyModel):
         self.pca_map = self.h5['lfsm_component_maps_3.0deg.dat'][:]
         self.pca_components =  self.h5['lfsm_components.dat'][:]
         self.nside = 256
+
+        self.include_cmb = include_cmb
 
         freqs  = self.pca_components[:, 0]
         sigmas = self.pca_components[:, 1]
@@ -90,6 +99,10 @@ class LowFrequencySkyModel(BaseSkyModel):
             map_out[ff] =  rotate_equatorial_to_galactic(map_out[ff])
 
         map_out = map_out.squeeze()
+
+        if self.include_cmb == False:
+            map_out -= T_CMB
+
         self.generated_map_data = map_out
         self.generated_map_freqs = freqs
         return map_out

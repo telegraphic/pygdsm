@@ -104,6 +104,16 @@ def test_write_fits():
 
     os.remove("test_write_fits.fits")
 
+def test_cmb_removal():
+    g = GlobalSkyModel(freq_unit='MHz', include_cmb=False)
+    sky_no_cmb = g.generate(400)
+    g = GlobalSkyModel(freq_unit='MHz',  include_cmb=True)
+    sky_with_cmb = g.generate(400)    
+
+    T_cmb = (sky_with_cmb - sky_no_cmb).mean()
+    print(T_cmb)
+    assert np.isclose(T_cmb, 2.725)
+
 
 if __name__ == "__main__":
     test_gsm_generate()
@@ -111,3 +121,4 @@ if __name__ == "__main__":
     test_speed()
     test_write_fits()
     test_set_methods()
+    test_cmb_removal()

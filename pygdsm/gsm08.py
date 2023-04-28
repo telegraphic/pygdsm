@@ -30,12 +30,13 @@ from .plot_utils import show_plt
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
 
+T_CMB = 2.725
 
 class GlobalSkyModel(BaseSkyModel):
     """ Global sky model (GSM) class for generating sky models.
     """
 
-    def __init__(self, freq_unit='MHz', basemap='haslam', interpolation='pchip'):
+    def __init__(self, freq_unit='MHz', basemap='haslam', interpolation='pchip', include_cmb=False):
         """ Global sky model (GSM) class for generating sky models.
 
         Upon initialization, the map PCA data are loaded into memory and interpolation
@@ -58,6 +59,9 @@ class GlobalSkyModel(BaseSkyModel):
             piecewise cubic hermitian interpolating polynomial (PCHIP).
             PCHIP is designed to never locally overshoot data, whereas
             splines are designed to have smooth first and second derivatives.
+        include_cmb: bool (default False)
+            Choose whether to include the CMB. Defaults to False. A value of
+            T_CMB = 2.725 K is used.
 
         Notes
         -----
@@ -82,6 +86,7 @@ class GlobalSkyModel(BaseSkyModel):
         super(GlobalSkyModel, self).__init__('GSM2008', GSM_FILEPATH, freq_unit, data_unit, basemap)
 
         self.interpolation_method = interpolation
+        self.include_cmb = include_cmb
 
 
         self.pca_map_data = None
@@ -160,11 +165,17 @@ class GlobalSkyModel(BaseSkyModel):
         # c=comp, f=freq, p=pixel. We want to dot product over c for each freq
         #print comps.shape, self.pca_map_data.shape, scaling.shape
         map_out = np.einsum('cf,pc,f->fp', comps, self.pca_map_data, scaling)
+        
+        if self.include_cmb:
+            map_out += T_CMB
 
         if map_out.shape[0] == 1:
             map_out = map_out[0]
         self.generated_map_data = map_out
         self.generated_map_freqs = freqs
+
+
+
         return map_out
 
     def set_basemap(self, new_basemap):

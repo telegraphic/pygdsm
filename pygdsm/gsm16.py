@@ -71,7 +71,7 @@ class GlobalSkyModel16(BaseSkyModel):
             splines are designed to have smooth first and second derivatives.
         include_cmb: bool (default False)
             Choose whether to include the CMB. Defaults to False. A value of
-            T_CMB = 2.725 is used.
+            T_CMB = 2.725 K is used.
 
         Notes
         -----
@@ -196,6 +196,7 @@ class GlobalSkyModel16(BaseSkyModel):
             
             output[ifreq] = hp.pixelfunc.reorder(output[ifreq], n2r=True)
 
+            # DCP 2023.04.28 - Remove CMB as default
             if self.include_cmb is False:
                 output -=  K_CMB2MJysr(T, 1e9 * freq)
 
@@ -207,7 +208,6 @@ class GlobalSkyModel16(BaseSkyModel):
                 conversion = 1.
             output[ifreq] *= conversion
 
-#            output.append(result)
 
         if len(output) == 1:
             output = output[0]
