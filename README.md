@@ -73,7 +73,8 @@ Q & A
 **Q. What's the difference between this and the [Zheng et. al. github repo](https://github.com/jeffzhen/gsm2016)?**
      `pygdsm` provides two classes: `GlobalSkyModel16()` and `GSMObserver16()`, which once instantiated
      provide methods for programatically generating sky models. The Zheng et. al. github repo is a 
-     simple, low-dependency, command line tool. Have a look at the 
+     simple, low-dependency, command line tool. As of PyGDSM 1.4.0, we have implemented improved interpolation
+     via cubic spline or PCHIP, which avoids discontinuities identified using the 2016 method. Have a look at the 
      [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm2016_quickstart.ipynb)
      to get a feel for what `PyGDSM` does.
 
@@ -89,7 +90,7 @@ References
 ----------
 
 The sky model data contained here is from:
-* GSM2008 http://space.mit.edu/~angelica/gsm/index.html 
+* GSM2008 http://space.mit.edu/~angelica/gsm/index.html (link no longer active)
 * GSM2016 https://github.com/jeffzhen/gsm2016
 * LFSS https://lda10g.alliance.unm.edu/LWA1LowFrequencySkySurvey/
 * Haslam https://lambda.gsfc.nasa.gov/product/foreground/fg_2014_haslam_408_info.cfm
