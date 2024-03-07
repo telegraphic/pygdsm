@@ -198,7 +198,7 @@ class GlobalSkyModel16(BaseSkyModel):
 
             # DCP 2023.04.28 - Remove CMB as default
             if self.include_cmb is False:
-                output -=  K_CMB2MJysr(T, 1e9 * freq)
+                output[ifreq] -=  K_CMB2MJysr(T, 1e9 * freq)
 
             if self.data_unit == 'TCMB':
                 conversion = 1. / K_CMB2MJysr(1., 1e9 * freq)
