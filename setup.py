@@ -35,8 +35,8 @@ setup(
     url='https://github.com/telegraphic/pygdsm',
 
     # Author details
-    author='Danny Price',
-    author_email='dancpr@berkeley.edu',
+    author='Danny C. Price',
+    author_email='daniel.price@skao.int',
 
     # Choose your license
     license='MIT',
