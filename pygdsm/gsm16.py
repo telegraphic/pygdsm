@@ -196,10 +196,10 @@ class GlobalSkyModel16(BaseSkyModel):
             
             output[ifreq] = hp.pixelfunc.reorder(output[ifreq], n2r=True)
 
-            # DCP 2023.04.28 - Remove CMB as default
-            if self.include_cmb is False:
-                output[ifreq] -=  K_CMB2MJysr(T, 1e9 * freq)
-
+            # DCP 2024.03.29 - Add CMB if requested
+            if self.include_cmb:
+                output[ifreq] +=  K_CMB2MJysr(T, 1e9 * freq)
+                
             if self.data_unit == 'TCMB':
                 conversion = 1. / K_CMB2MJysr(1., 1e9 * freq)
             elif self.data_unit == 'TRJ':
