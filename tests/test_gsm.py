@@ -7,6 +7,7 @@ Tests for GSM module.
 
 import os
 from pygdsm import GlobalSkyModel
+from pygdsm import init_gsm, init_observer
 
 import time
 import numpy as np
@@ -108,7 +109,7 @@ def test_cmb_removal():
     g = GlobalSkyModel(freq_unit='MHz', include_cmb=False)
     sky_no_cmb = g.generate(400)
     g = GlobalSkyModel(freq_unit='MHz',  include_cmb=True)
-    sky_with_cmb = g.generate(400)    
+    sky_with_cmb = g.generate(400)
 
     T_cmb = (sky_with_cmb - sky_no_cmb).mean()
     print(T_cmb)
