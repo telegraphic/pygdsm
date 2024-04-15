@@ -3,7 +3,8 @@ import healpy as hp
 import numpy as np
 from astropy.time import Time
 from pygdsm.plot_utils import show_plt
-
+from pygdsm.utils import hpix2sky, sky2hpix
+from astropy.coordinates import SkyCoord
 
 class BaseObserver(ephem.Observer):
     """ Observer of the Global Sky Model.
@@ -59,13 +60,13 @@ class BaseObserver(ephem.Observer):
             with below the horizon masked.
         """
         # Check to see if frequency has changed.
-        if freq is not None: 
+        if freq is not None:
             if not np.isclose(freq, self._freq):
                 self.gsm.generate(freq)
                 self._freq = freq
-        
+
         sky = self.gsm.generated_map_data
-        
+
         # Check if time has changed -- astropy allows None == Time() comparison
         if obstime == self._time or obstime is None:
             time_has_changed = False
@@ -78,8 +79,19 @@ class BaseObserver(ephem.Observer):
         if time_has_changed or self.observed_sky is None:
             # Get RA and DEC of zenith
             ra_zen, dec_zen = self.radec_of(0, np.pi/2)
+            sc_zen = SkyCoord(ra_zen, dec_zen, unit=('rad', 'rad'))
+            pix_zen = sky2hpix(self._n_side, sc_zen)
+            vec_zen = hp.pix2vec(self._n_side, pix_zen)
+
+            # Convert to degrees
             ra_zen  *= (180 / np.pi)
             dec_zen *= (180 / np.pi)
+
+            # Generate below-horizon mask using query_disc
+            mask = np.ones(shape=self._n_pix, dtype='bool')
+            pix_visible = hp.query_disc(self._n_side, vec=vec_zen, radius=np.pi/2)
+            mask[pix_visible] = 0
+            self._mask = mask
 
             # Transform from Galactic coordinates to Equatorial
             rot = hp.Rotator(coord=['G', 'C'])
@@ -88,12 +100,6 @@ class BaseObserver(ephem.Observer):
             # Convert from Equatorial colatitude and longitude to normal RA and DEC
             dec = 90.0 - np.abs(eq_theta*(180/np.pi))
             ra = ( (eq_phi + 2*np.pi) % (2*np.pi) )*(180/np.pi)
-
-            # Generate a mask for below horizon (distance from zenith > 90 deg)
-            dist = 2 * np.arcsin( np.sqrt( np.sin((dec_zen-dec)*(np.pi/180)/2)**2 + \
-                    np.cos(dec_zen*(np.pi/180))*np.cos(dec*(np.pi/180))*np.sin((ra_zen-ra)*(np.pi/180)/2)**2 ) )
-            mask = dist > (np.pi/2)
-            self._mask = mask
 
             # Apply rotation to convert from Galactic to Equatorial and center on zenith
             hrot = hp.Rotator(rot=[ra_zen, dec_zen], coord=['G', 'C'], inv=True)
@@ -105,7 +111,7 @@ class BaseObserver(ephem.Observer):
             ra_rotated = ra[self._pix0]
             self._observed_ra = ra_rotated
             self._observed_dec = dec_rotated
- 
+
         sky_rotated = sky[self._pix0]
         mask_rotated = self._mask[self._pix0]
 
@@ -132,11 +138,10 @@ class BaseObserver(ephem.Observer):
             show_plt()
         return sky
 
-    def view_observed_gsm(self, logged=False, show=False, **kwargs):
-        """ View the GSM (Mollweide), with below-horizon area masked. """
+    @property
+    def observed_gsm(self):
+        """ Return the GSM (Mollweide), with below-horizon area masked. """
         sky = self.observed_sky
-        if logged:
-            sky = np.log2(sky)
 
         # Get RA and DEC of zenith
         ra_rad, dec_rad = self.radec_of(0, np.pi / 2)
@@ -153,10 +158,24 @@ class BaseObserver(ephem.Observer):
         g0, g1 = coordrotate(self._theta, self._phi)
         pix0 = hp.ang2pix(self._n_side, g0, g1)
         sky = sky[pix0]
+        return sky
+
+    def view_observed_gsm(self, logged=False, show=False, **kwargs):
+        """ View the GSM (Mollweide), with below-horizon area masked.
+
+        Args:
+            logged (bool): Apply log2 to data (default False)
+            show (bool): Call plt.show() (default False)
+
+        Returns:
+            sky (np.array): Healpix map of observed GSM.
+        """
+        sky = self.observed_gsm
+
+        if logged:
+            sky = np.log2(sky)
 
         hp.mollview(sky, coord='G', **kwargs)
-
         if show:
             show_plt()
-
         return sky
