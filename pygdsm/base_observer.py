@@ -40,10 +40,11 @@ class BaseObserver(ephem.Observer):
 
         self._pix0 = None
         self._mask = None
+        self._horizon_elevation = 0.0
         self._observed_ra = None
         self._observed_dec = None
 
-    def generate(self, freq=None, obstime=None):
+    def generate(self, freq=None, obstime=None, horizon_elevation=None):
         """ Generate the observed sky for the observer, based on the GSM.
 
         Parameters
@@ -52,6 +53,8 @@ class BaseObserver(ephem.Observer):
             Frequency of map to generate, in units of MHz (default).
         obstime: astropy.time.Time
             Time of observation to generate
+        horizon_elevation: float
+            Elevation of the artificial horionz (default 0.0)
 
         Returns
         -------
@@ -75,8 +78,20 @@ class BaseObserver(ephem.Observer):
             self._time = Time(obstime)  # This will catch datetimes, but Time() object should be passed
             self.date  = obstime.to_datetime()
 
+        # Match pyephem convertion -- string is degrees, int/float is rad
+        horizon_elevation = ephem.degrees(horizon_elevation or 0.0)
+        if self._horizon_elevation == horizon_elevation:
+            horizon_has_changed = False
+        else:
+            self._horizon_elevation = horizon_elevation
+            horizon_has_changed = True
+
+        # Checking this separately encase someone tries to be smart and sets both the attribute and kwarg
+        if self._horizon_elevation < 0:
+                raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees ({np.rad2deg(horizon_elevation)=}).")
+
         # Rotation is quite slow, only recompute if time or frequency has changed, or it has never been run
-        if time_has_changed or self.observed_sky is None:
+        if time_has_changed or self.observed_sky is None or horizon_has_changed:
             # Get RA and DEC of zenith
             ra_zen, dec_zen = self.radec_of(0, np.pi/2)
             sc_zen = SkyCoord(ra_zen, dec_zen, unit=('rad', 'rad'))
@@ -89,7 +104,7 @@ class BaseObserver(ephem.Observer):
 
             # Generate below-horizon mask using query_disc
             mask = np.ones(shape=self._n_pix, dtype='bool')
-            pix_visible = hp.query_disc(self._n_side, vec=vec_zen, radius=np.pi/2)
+            pix_visible = hp.query_disc(self._n_side, vec=vec_zen, radius=np.pi/2 - self._horizon_elevation)
             mask[pix_visible] = 0
             self._mask = mask
 

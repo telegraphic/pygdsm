@@ -44,6 +44,28 @@ def test_observer_test():
     d = ov.view(logged=True)
     plt.show()
 
+    ov = LFSMObserver()
+    ov.lon = longitude
+    ov.lat = latitude
+    ov.elev = elevation
+    ov.date = datetime(2000, 1, 1, 23, 0)
+
+    ov.generate(200, horizon_elevation = '20.0')
+    d_20deg_horizon = ov.view(logged=True)
+
+    ov = LFSMObserver()
+    ov.lon = longitude
+    ov.lat = latitude
+    ov.elev = elevation
+    ov.date = datetime(2000, 1, 1, 23, 0)
+
+    ov.generate(200, horizon_elevation = np.deg2rad(20.0))
+    d_20deg2rad_horizon = ov.view(logged=True)
+
+    assert np.all(d_20deg_horizon == d_20deg2rad_horizon), "The two methods for calculating the artifial horizon do not match."
+    assert np.ma.count_masked(d_20deg_horizon).sum() == 527705
+    plt.show()
+
 def test_cmb_removal():
     g = LowFrequencySkyModel(freq_unit='MHz', include_cmb=False)
     sky_no_cmb = g.generate(400)

@@ -45,6 +45,28 @@ def test_observer_test():
     d = ov.view(logged=True)
     plt.show()
 
+    ov = GSMObserver16()
+    ov.lon = longitude
+    ov.lat = latitude
+    ov.elev = elevation
+    ov.date = datetime(2000, 1, 1, 23, 0)
+
+    ov.generate(1400, horizon_elevation = '20.0')
+    d_20deg_horizon = ov.view(logged=True)
+
+    ov = GSMObserver16()
+    ov.lon = longitude
+    ov.lat = latitude
+    ov.elev = elevation
+    ov.date = datetime(2000, 1, 1, 23, 0)
+
+    ov.generate(1400, horizon_elevation = np.deg2rad(20.0))
+    d_20deg2rad_horizon = ov.view(logged=True)
+
+    assert np.all(d_20deg_horizon == d_20deg2rad_horizon), "The two methods for calculating the artifial horizon do not match."
+    assert np.ma.count_masked(d_20deg_horizon).sum() == 8443259 # This is higher than LFSM and Haslam due to the nside=1024 sampling for the 'hi' resolution default
+    plt.show()
+
 def test_interp():
     f = np.arange(40, 80, 5)
     for interp in ('pchip', 'cubic'):
