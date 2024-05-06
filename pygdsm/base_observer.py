@@ -54,7 +54,7 @@ class BaseObserver(ephem.Observer):
         obstime: astropy.time.Time
             Time of observation to generate
         horizon_elevation: float
-            Elevation of the artificial horionz (default 0.0)
+            Elevation of the artificial horizon (default 0.0)
 
         Returns
         -------
