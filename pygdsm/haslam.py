@@ -52,7 +52,7 @@ class HaslamSkyModel(BaseSkyModel):
 
         super(HaslamSkyModel, self).__init__('Haslam', HASLAM_FILEPATH, freq_unit, data_unit, basemap)
         self.spectral_index = spectral_index
-        self.data = hp.read_map(self.fits, verbose=False, dtype=np.float64) - T_CMB
+        self.data = hp.read_map(self.fits, dtype=np.float64) - T_CMB
         self.nside = 512
 
         self.include_cmb = include_cmb
