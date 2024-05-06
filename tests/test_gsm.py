@@ -5,14 +5,17 @@ test_gsm.py
 Tests for GSM module.
 """
 
-import os
 from pygdsm import GlobalSkyModel
-from pygdsm import init_gsm, init_observer
+from pygdsm.component_data import GSM2008_TEST_DATA
 
+import os
 import time
+import pytest
 import numpy as np
 import h5py
 import healpy as hp
+from astropy.coordinates import SkyCoord
+
 
 def test_gsm_generate():
     """ Test maps generate successfully, and that output shapes are correct. """
@@ -35,7 +38,7 @@ def test_gsm_generate():
         assert map.shape == (10, 3145728)
 
 
-def compare_to_gsm():
+def test_compare_to_gsm():
     """ Compare output of python version to fortran version.
 
     Compares against output of original GSM. Note that the interpolation
@@ -52,15 +55,18 @@ def compare_to_gsm():
 
     Note: Because each output
     """
-    gsm = GlobalSkyModel(basemap='haslam', interpolation='cubic')
-    gsm_fortran = h5py.File('gsm_fortran_test_data.h5', 'r')
+    gsm = GlobalSkyModel(basemap='haslam', interpolation='pchip')
+    gsm_fortran = h5py.File(GSM2008_TEST_DATA, 'r')
     for freq in (10, 100, 408, 1000, 1420, 2326, 10000, 23000, 40000, 90000, 94000):
         print("\nComparing at %i MHz..." % freq)
         a = gsm_fortran['map_%imhz.out' % freq][:]
         b = gsm.generate(freq)
-        print("FORTRAN: ", a)
-        print("PYTHON:  ", b)
-        print("FRAC AVG: %2.6f" % np.average(np.abs(1 - a/b)))
+        frac_avg = np.average(np.abs(1 - a/b))
+        if frac_avg > 0.01:
+            print("FORTRAN: ", a)
+            print("PYTHON:  ", b)
+            print(f"FRAC AVG: {frac_avg:.6f}")
+        assert frac_avg < 0.035
 
 
 def test_set_methods():
@@ -115,11 +121,37 @@ def test_cmb_removal():
     print(T_cmb)
     assert np.isclose(T_cmb, 2.725)
 
+def test_get_sky_temperature():
+    gc = SkyCoord(0, 0, unit='deg', frame='galactic')
+    freqs = (50, 100, 150)
+    g = GlobalSkyModel()
+    T = g.get_sky_temperature(gc, freqs)
+
+    T_gold = np.array([258368.7463149 ,  50466.45058671,  18968.12555978])
+    assert np.allclose(T, T_gold)
+
+def test_stupid_values():
+    with pytest.raises(RuntimeError):
+        g = GlobalSkyModel(basemap='haslamalan')
+    with pytest.raises(RuntimeError):
+        g = GlobalSkyModel(interpolation='linear')
+    with pytest.raises(RuntimeError):
+        g = GlobalSkyModel()
+        g.generate(9999999999)
+
+def test_set_interpolation_method():
+    g = GlobalSkyModel(interpolation='pchip')
+    assert g.interpolation_method == 'pchip'
+    g.set_interpolation_method('cubic')
+    assert g.interpolation_method == 'cubic'
 
 if __name__ == "__main__":
+    test_stupid_values()
+    test_set_interpolation_method()
     test_gsm_generate()
-    compare_to_gsm()
+    test_compare_to_gsm()
     test_speed()
     test_write_fits()
     test_set_methods()
     test_cmb_removal()
+    test_get_sky_temperature()

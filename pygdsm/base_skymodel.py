@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import h5py
 import healpy as hp
@@ -17,12 +18,12 @@ def is_fits(filepath):
     FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
                       b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
                       b"\x20\x54")
-    with open(str(filepath),'rb') as f:
-        try:
+    try:
+        with open(str(filepath),'rb') as f:
             return f.read(30) == FITS_SIGNATURE
-        except FileNotFoundError as e:
-            print(e)
-            return False
+    except FileNotFoundError as e:
+        print(e)
+        return False
 
 
 class BaseSkyModel(object):
@@ -44,12 +45,15 @@ class BaseSkyModel(object):
         Any GSM needs to supply a generate() function
         """
         self.name = name
-        if h5py.is_hdf5(filepath):
-            self.h5 = h5py.File(filepath, "r")
-        elif is_fits(filepath):
-            self.fits = fits.open(filepath, "readonly")
+        if os.path.exists(filepath):
+            if h5py.is_hdf5(filepath):
+                self.h5 = h5py.File(filepath, "r")
+            elif is_fits(filepath):
+                self.fits = fits.open(filepath, "readonly")
+            else:
+                raise RuntimeError(f"Cannot read HDF5/FITS file {filepath}")
         else:
-            raise RuntimeError(f"Cannot read HDF5/FITS file {filepath}")
+            raise RuntimeError(f"Cannot find {filepath}")
         self.basemap = basemap
         self.freq_unit = freq_unit
         self.data_unit = data_unit
@@ -90,7 +94,7 @@ class BaseSkyModel(object):
 
         if show:
             show_plt()
-    
+
     def get_sky_temperature(self, coords, freqs=None, include_cmb=True):
         """ Get sky temperature at given coordinates.
 
@@ -99,17 +103,17 @@ class BaseSkyModel(object):
 
         Parameters
         ----------
-        coords (astropy.coordinates.SkyCoord): 
+        coords (astropy.coordinates.SkyCoord):
             Sky Coordinates to compute temperature for.
         freqs (None, float, or np.array):
-            frequencies to evaluate. If not set, will default to those supplied 
+            frequencies to evaluate. If not set, will default to those supplied
             when generate() was called.
-        include_cmb (bool): 
+        include_cmb (bool):
             Include a 2.725 K contribution from the CMB (default True).
         """
-        
+
         T_cmb = 2.725 if include_cmb else 0
-        
+
         if freqs is not None:
             self.generate(freqs)
 
