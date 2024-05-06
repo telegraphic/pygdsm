@@ -25,7 +25,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.5.3',
+    version='1.5.4',
 
     description='Python Global Sky Model of diffuse Galactic radio emission',
     long_description=long_description,
