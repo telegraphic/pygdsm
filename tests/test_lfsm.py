@@ -51,7 +51,7 @@ def test_observer_test():
     ov.date = datetime(2000, 1, 1, 23, 0)
 
     horizon_elevation = 85.0
-    ov.generate(200, horizon_elevation = str(horizon_elevation))
+    ov.generate(200, horizon_elevation=str(horizon_elevation))
     d_85deg_horizon = ov.view(logged=True)
 
     ov = LFSMObserver()
@@ -60,7 +60,7 @@ def test_observer_test():
     ov.elev = elevation
     ov.date = datetime(2000, 1, 1, 23, 0)
 
-    ov.generate(200, horizon_elevation = np.deg2rad(horizon_elevation))
+    ov.generate(200, horizon_elevation=np.deg2rad(horizon_elevation))
     d_85deg2rad_horizon = ov.view(logged=True)
 
     assert np.all(d_85deg_horizon == d_85deg2rad_horizon), "The two methods for calculating the artificial horizon do not match."
