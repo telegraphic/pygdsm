@@ -50,8 +50,9 @@ def test_observer_test():
     ov.elev = elevation
     ov.date = datetime(2000, 1, 1, 23, 0)
 
-    ov.generate(200, horizon_elevation = '20.0')
-    d_20deg_horizon = ov.view(logged=True)
+    horizon_elevation = 85.0
+    ov.generate(200, horizon_elevation = str(horizon_elevation))
+    d_85deg_horizon = ov.view(logged=True)
 
     ov = LFSMObserver()
     ov.lon = longitude
@@ -59,11 +60,11 @@ def test_observer_test():
     ov.elev = elevation
     ov.date = datetime(2000, 1, 1, 23, 0)
 
-    ov.generate(200, horizon_elevation = np.deg2rad(20.0))
-    d_20deg2rad_horizon = ov.view(logged=True)
+    ov.generate(200, horizon_elevation = np.deg2rad(horizon_elevation))
+    d_85deg2rad_horizon = ov.view(logged=True)
 
-    assert np.all(d_20deg_horizon == d_20deg2rad_horizon), "The two methods for calculating the artifial horizon do not match."
-    assert np.ma.count_masked(d_20deg_horizon).sum() == 527705
+    assert np.all(d_85deg_horizon == d_85deg2rad_horizon), "The two methods for calculating the artificial horizon do not match."
+    assert np.ma.count_masked(d_85deg_horizon).sum() == 784951
     plt.show()
 
 def test_cmb_removal():
