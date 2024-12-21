@@ -5,6 +5,7 @@ import healpy as hp
 import numpy as np
 import pylab as plt
 from astropy.time import Time
+import pytest
 
 from pygdsm import GSMObserver, GSMObserver16, LFSMObserver
 
@@ -44,6 +45,10 @@ def test_gsm_observer(show=False):
     ov.generate(50)
     ov.view(logged=True)
     ov.view_observed_gsm(logged=True)
+
+    with pytest.raises(ValueError) as e:
+        ov.generate(horizon_elevation=-1e-3)
+
     if show:
         plt.show()
 
@@ -58,11 +63,13 @@ def test_observed_mollview():
     ov.elev = elevation
 
     obs = []
-    if not os.path.exists("generated_sky"):
-        os.mkdir("generated_sky")
+    if not os.path.exists('generated_sky'):
+        os.mkdir('generated_sky')
+    freq = 50
+    horizon_elevation = '85.0'
     for ii in range(0, 24, 4):
         ov.date = datetime(2000, 1, 1, ii, 0)
-        ov.generate(50)
+        ov.generate(freq)
         sky = ov.view_observed_gsm(logged=True, show=False, min=9, max=20)
         plt.savefig("generated_sky/galactic-%02d.png" % ii)
         plt.close()
@@ -79,12 +86,23 @@ def test_observed_mollview():
         plt.savefig("generated_sky/ortho-%02d.png" % ii)
         plt.close()
 
+        ov.generate(freq=freq, horizon_elevation=horizon_elevation)
+        ov.view(logged=True, show=False, min=9, max=20)
+        plt.savefig('generated_sky/ortho_85deg_horizon-%02d.png' % ii)
+        plt.close()
+
+        ov.generate(freq=freq, horizon_elevation=horizon_elevation)
+        ov.view(logged=True, show=False, min=9, max=20)
+        plt.savefig('generated_sky/ortho_85deg_horizon-%02d.png' % ii)
+        plt.close()
         print(ii)
 
-    os.system("convert -delay 20 generated_sky/ortho-*.png ortho.gif")
-    os.system("convert -delay 20 generated_sky/galactic-*.png galactic.gif")
-    os.system("convert -delay 20 generated_sky/ecliptic-*.png ecliptic.gif")
-    os.system("convert -delay 20 generated_sky/equatorial-*.png equatorial.gif")
+    os.system('convert -delay 20 generated_sky/ortho-*.png ortho.gif')
+    os.system('convert -delay 20 generated_sky/ortho_85deg_horizon-*.png ortho_85deg_horizon.gif')
+    os.system('convert -delay 20 generated_sky/galactic-*.png galactic.gif')
+    os.system('convert -delay 20 generated_sky/ecliptic-*.png ecliptic.gif')
+    os.system('convert -delay 20 generated_sky/equatorial-*.png equatorial.gif')
+
 
 
 def test_generate_with_and_without_args():
@@ -109,7 +127,10 @@ def test_generate_with_and_without_args():
     ov.generate(obstime=now)
     ov.generate(obstime=now, freq=53)
     ov.generate(obstime=now, freq=52)
-
+    ov.generate(obstime=now, freq=53, horizon_elevation=0.0)
+    ov.generate(obstime=now, freq=52, horizon_elevation='0.0')
+    ov.generate(obstime=now, freq=53, horizon_elevation=np.deg2rad(85.0))
+    ov.generate(obstime=now, freq=52, horizon_elevation='85.0')
 
 if __name__ == "__main__":
     test_gsm_observer(show=True)

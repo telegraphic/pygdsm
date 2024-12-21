@@ -21,7 +21,7 @@ with open("requirements_test.txt", "r") as fh:
 
 setup(
     name="pygdsm",
-    version="1.5.5",
+    version="1.6.0",
     description="Python Global Sky Model of diffuse Galactic radio emission",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -39,8 +39,12 @@ setup(
         "Topic :: Scientific/Engineering :: Astronomy",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     # What does your project relate to?
     keywords="radio astronomy sky model galactic diffuse emission",

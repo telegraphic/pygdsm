@@ -28,17 +28,20 @@ def init_gsm(gsm_name: str = "gsm08"):
         sky_model (various): Corresponding sky model
     """
     gsm_name = gsm_name.lower().strip()
-    match gsm_name:
-        case "gsm":  # Shorthand for GSM08
-            return GlobalSkyModel()
-        case "gsm08":
-            return GlobalSkyModel()
-        case "gsm16":
-            return GlobalSkyModel16()
-        case "lfsm":
-            return LowFrequencySkyModel()
-        case "haslam":
-            return HaslamSkyModel()
+
+    if gsm_name == 'gsm': # Shorthand for GSM08
+        return GlobalSkyModel()
+    elif gsm_name == 'gsm08':
+        return GlobalSkyModel()
+    elif gsm_name == 'gsm16':
+        return GlobalSkyModel16()
+    elif gsm_name == 'lfsm':
+        return LowFrequencySkyModel()
+    elif gsm_name == 'haslam':
+        return HaslamSkyModel()
+    else:
+        raise ValueError(f'Invalid model specification "{gsm_name}"')
+
 
 
 def init_observer(gsm_name: str = "gsm08"):
@@ -61,14 +64,16 @@ def init_observer(gsm_name: str = "gsm08"):
         observer (various): Corresponding sky model observer
     """
     gsm_name = gsm_name.lower().strip()
-    match gsm_name:
-        case "gsm":  # Shorthand for GSM08
-            return GSMObserver()
-        case "gsm08":
-            return GSMObserver()
-        case "gsm16":
-            return GSMObserver16()
-        case "lfsm":
-            return LFSMObserver()
-        case "haslam":
-            return HaslamObserver()
+
+    if gsm_name == 'gsm': # Shorthand for GSM08
+        return GSMObserver()
+    elif gsm_name == 'gsm08':
+        return GSMObserver()
+    elif gsm_name == 'gsm16':
+        return GSMObserver16()
+    elif gsm_name == 'lfsm':
+        return LFSMObserver()
+    elif gsm_name == 'haslam':
+        return HaslamObserver()
+    else:
+        raise ValueError(f'Invalid model specification "{gsm_name}"')
