@@ -1,5 +1,5 @@
 from astropy.utils.data import download_file
-from astropy.config.paths import get_cache_dir_path
+from astropy.config import get_cache_dir_path
 
 FILE_HOST = "datacentral.org.au"
 GSM_DATA_URL = "https://apps.datacentral.org.au/pygdsm/data/gsm_components.h5"
