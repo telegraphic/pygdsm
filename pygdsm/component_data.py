@@ -1,5 +1,5 @@
 from astropy.utils.data import download_file
-from astropy.config import get_cache_dir_path
+from astropy.config import get_cache_dir
 
 FILE_HOST = "datacentral.org.au"
 GSM_DATA_URL = "https://apps.datacentral.org.au/pygdsm/data/gsm_components.h5"
@@ -21,5 +21,5 @@ def download_map_data():
     print("Checking for component data files...")
     for URL in DATA_URLS:
         download_file(URL, cache=True, show_progress=True)
-    CACHE_PATH = get_cache_dir_path()
+    CACHE_PATH = get_cache_dir()
     print(f"Data saved in {CACHE_PATH}")
