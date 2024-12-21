@@ -5,20 +5,25 @@ test_gsm.py
 Tests for GSM module.
 """
 
-from pygdsm import GlobalSkyModel
-from pygdsm.component_data import GSM2008_TEST_DATA
-
 import os
 import time
-import pytest
-import numpy as np
+
 import h5py
 import healpy as hp
+import numpy as np
+import pytest
 from astropy.coordinates import SkyCoord
+from astropy.utils.data import download_file
 
+from pygdsm import GlobalSkyModel
+from pygdsm.component_data import GSM2008_TEST_DATA_URL
+
+
+# Download test data as needed (stored in astropy cache)
+GSM2008_TEST_DATA = download_file(GSM2008_TEST_DATA_URL, cache=True, show_progress=True)
 
 def test_gsm_generate():
-    """ Test maps generate successfully, and that output shapes are correct. """
+    """Test maps generate successfully, and that output shapes are correct."""
 
     freq = 40
     gsm = GlobalSkyModel()
@@ -26,20 +31,20 @@ def test_gsm_generate():
     assert map.shape == (3145728,)
 
     freqs = [40, 80, 120, 160]
-    gsm = GlobalSkyModel(interpolation='cubic')
+    gsm = GlobalSkyModel(interpolation="cubic")
     map = gsm.generate(freqs)
     assert map.shape == (4, 3145728)
 
     freqs = np.linspace(1, 90, 10)
-    freq_unit = 'GHz'
-    for map_id in ['5deg', 'haslam', 'wmap']:
-        gsm = GlobalSkyModel(basemap=map_id, interpolation='pchip', freq_unit=freq_unit)
+    freq_unit = "GHz"
+    for map_id in ["5deg", "haslam", "wmap"]:
+        gsm = GlobalSkyModel(basemap=map_id, interpolation="pchip", freq_unit=freq_unit)
         map = gsm.generate(freqs)
         assert map.shape == (10, 3145728)
 
 
 def test_compare_to_gsm():
-    """ Compare output of python version to fortran version.
+    """Compare output of python version to fortran version.
 
     Compares against output of original GSM. Note that the interpolation
     functions used in this and in the original differ. So, the outputs
@@ -55,13 +60,13 @@ def test_compare_to_gsm():
 
     Note: Because each output
     """
-    gsm = GlobalSkyModel(basemap='haslam', interpolation='pchip')
-    gsm_fortran = h5py.File(GSM2008_TEST_DATA, 'r')
+    gsm = GlobalSkyModel(basemap="haslam", interpolation="pchip")
+    gsm_fortran = h5py.File(GSM2008_TEST_DATA, "r")
     for freq in (10, 100, 408, 1000, 1420, 2326, 10000, 23000, 40000, 90000, 94000):
         print("\nComparing at %i MHz..." % freq)
-        a = gsm_fortran['map_%imhz.out' % freq][:]
+        a = gsm_fortran["map_%imhz.out" % freq][:]
         b = gsm.generate(freq)
-        frac_avg = np.average(np.abs(1 - a/b))
+        frac_avg = np.average(np.abs(1 - a / b))
         if frac_avg > 0.01:
             print("FORTRAN: ", a)
             print("PYTHON:  ", b)
@@ -70,26 +75,25 @@ def test_compare_to_gsm():
 
 
 def test_set_methods():
-
     gsm = GlobalSkyModel()
     gsm.generate(40)
-    #gsm.view()
+    # gsm.view()
 
-    gsm.set_basemap('haslam')
+    gsm.set_basemap("haslam")
     gsm.view()
 
-    gsm.set_basemap('5deg')
+    gsm.set_basemap("5deg")
     gsm.view()
 
-    gsm.set_basemap('wmap')
+    gsm.set_basemap("wmap")
     gsm.view()
 
-    gsm.set_freq_unit('GHz')
+    gsm.set_freq_unit("GHz")
     gsm.view()
 
 
 def test_speed():
-    gsm = GlobalSkyModel(basemap='haslam')
+    gsm = GlobalSkyModel(basemap="haslam")
 
     t1 = time.time()
     for ff in np.linspace(10, 10000, 100):
@@ -104,46 +108,51 @@ def test_write_fits():
     gsm.write_fits("test_write_fits.fits")
 
     d_fits = hp.read_map("test_write_fits.fits")
-    d_gsm  = gsm.generated_map_data
+    d_gsm = gsm.generated_map_data
 
     assert d_fits.shape == d_gsm.shape
     assert np.allclose(d_fits, d_gsm)
 
     os.remove("test_write_fits.fits")
 
+
 def test_cmb_removal():
-    g = GlobalSkyModel(freq_unit='MHz', include_cmb=False)
+    g = GlobalSkyModel(freq_unit="MHz", include_cmb=False)
     sky_no_cmb = g.generate(400)
-    g = GlobalSkyModel(freq_unit='MHz',  include_cmb=True)
+    g = GlobalSkyModel(freq_unit="MHz", include_cmb=True)
     sky_with_cmb = g.generate(400)
 
     T_cmb = (sky_with_cmb - sky_no_cmb).mean()
     print(T_cmb)
     assert np.isclose(T_cmb, 2.725)
 
+
 def test_get_sky_temperature():
-    gc = SkyCoord(0, 0, unit='deg', frame='galactic')
+    gc = SkyCoord(0, 0, unit="deg", frame="galactic")
     freqs = (50, 100, 150)
     g = GlobalSkyModel()
     T = g.get_sky_temperature(gc, freqs)
 
-    T_gold = np.array([258368.7463149 ,  50466.45058671,  18968.12555978])
+    T_gold = np.array([258368.7463149, 50466.45058671, 18968.12555978])
     assert np.allclose(T, T_gold)
+
 
 def test_stupid_values():
     with pytest.raises(RuntimeError):
-        g = GlobalSkyModel(basemap='haslamalan')
+        g = GlobalSkyModel(basemap="haslamalan")
     with pytest.raises(RuntimeError):
-        g = GlobalSkyModel(interpolation='linear')
+        g = GlobalSkyModel(interpolation="linear")
     with pytest.raises(RuntimeError):
         g = GlobalSkyModel()
         g.generate(9999999999)
 
+
 def test_set_interpolation_method():
-    g = GlobalSkyModel(interpolation='pchip')
-    assert g.interpolation_method == 'pchip'
-    g.set_interpolation_method('cubic')
-    assert g.interpolation_method == 'cubic'
+    g = GlobalSkyModel(interpolation="pchip")
+    assert g.interpolation_method == "pchip"
+    g.set_interpolation_method("cubic")
+    assert g.interpolation_method == "cubic"
+
 
 if __name__ == "__main__":
     test_stupid_values()

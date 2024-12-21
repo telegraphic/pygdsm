@@ -1,9 +1,12 @@
 import os
-import numpy as np
+
 import h5py
 import healpy as hp
+import numpy as np
 from astropy.io import fits
+
 from .plot_utils import show_plt
+
 
 def is_fits(filepath):
     """
@@ -15,11 +18,13 @@ def is_fits(filepath):
     filepath: str
         Path to file
     """
-    FITS_SIGNATURE = (b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
-                      b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
-                      b"\x20\x54")
+    FITS_SIGNATURE = (
+        b"\x53\x49\x4d\x50\x4c\x45\x20\x20\x3d\x20\x20\x20\x20\x20"
+        b"\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"
+        b"\x20\x54"
+    )
     try:
-        with open(str(filepath),'rb') as f:
+        with open(str(filepath), "rb") as f:
             return f.read(30) == FITS_SIGNATURE
     except FileNotFoundError as e:
         print(e)
@@ -27,10 +32,10 @@ def is_fits(filepath):
 
 
 class BaseSkyModel(object):
-    """ Global sky model (GSM) class for generating sky models.
-    """
+    """Global sky model (GSM) class for generating sky models."""
+
     def __init__(self, name, filepath, freq_unit, data_unit, basemap):
-        """ Initialise basic sky model class
+        """Initialise basic sky model class
 
         Parameters
         ----------
@@ -65,7 +70,7 @@ class BaseSkyModel(object):
         raise NotImplementedError
 
     def view(self, idx=0, logged=False, show=False):
-        """ View generated map using healpy's mollweide projection.
+        """View generated map using healpy's mollweide projection.
 
         Parameters
         ----------
@@ -78,7 +83,9 @@ class BaseSkyModel(object):
         """
 
         if self.generated_map_data is None:
-            raise RuntimeError("No GSM map has been generated yet. Run generate() first.")
+            raise RuntimeError(
+                "No GSM map has been generated yet. Run generate() first."
+            )
 
         if self.generated_map_data.ndim == 2:
             gmap = self.generated_map_data[idx]
@@ -90,13 +97,15 @@ class BaseSkyModel(object):
         if logged:
             gmap = np.log2(gmap)
 
-        hp.mollview(gmap, coord='G', title='%s %s, %s' % (self.name, str(freq), self.basemap))
+        hp.mollview(
+            gmap, coord="G", title="%s %s, %s" % (self.name, str(freq), self.basemap)
+        )
 
         if show:
             show_plt()
 
     def get_sky_temperature(self, coords, freqs=None, include_cmb=True):
-        """ Get sky temperature at given coordinates.
+        """Get sky temperature at given coordinates.
 
         Returns sky temperature at a given SkyCoord (e.g. Ra/Dec or galactic l/b).
         Useful for estimating sky contribution to system temperature.
@@ -117,15 +126,16 @@ class BaseSkyModel(object):
         if freqs is not None:
             self.generate(freqs)
 
-        pix = hp.ang2pix(self.nside, coords.galactic.l.deg, coords.galactic.b.deg, lonlat=True)
+        pix = hp.ang2pix(
+            self.nside, coords.galactic.l.deg, coords.galactic.b.deg, lonlat=True
+        )
         if self.generated_map_data.ndim == 2:
             return self.generated_map_data[:, pix] + T_cmb
         else:
             return self.generated_map_data[pix] + T_cmb
 
-
     def write_fits(self, filename):
-        """ Write out map data as FITS file.
+        """Write out map data as FITS file.
 
         Parameters
         ----------
