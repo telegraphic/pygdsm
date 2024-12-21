@@ -1,22 +1,15 @@
-
-from .gsm08 import GlobalSkyModel
-from .gsm08 import GSMObserver
-
-from .gsm16 import GlobalSkyModel16
-from .gsm16 import GSMObserver16
-
-from .lfsm import LowFrequencySkyModel
-from .lfsm import LFSMObserver
-
-from .haslam import HaslamSkyModel
-from .haslam import HaslamObserver
+from .gsm08 import GlobalSkyModel, GSMObserver
+from .gsm16 import GlobalSkyModel16, GSMObserver16
+from .haslam import HaslamObserver, HaslamSkyModel
+from .lfsm import LFSMObserver, LowFrequencySkyModel
+from .component_data import download_map_data as download_map_data
 
 # Add aliases
 GlobalSkyModel08 = GlobalSkyModel
-GSMObserver08    = GSMObserver
+GSMObserver08 = GSMObserver
 
-def init_gsm(gsm_name: str='gsm08'):
-    """ Initialize a GDSM object by ID/name
+def init_gsm(gsm_name: str = "gsm08"):
+    """Initialize a GDSM object by ID/name
 
     Returns a diffuse sky model (subclass of BaseSkyModel), based on one of:
       * **GSM08:** A model of diffuse Galactic radio emission from 10 MHz to 100 GHz,
@@ -36,20 +29,20 @@ def init_gsm(gsm_name: str='gsm08'):
     """
     gsm_name = gsm_name.lower().strip()
     match gsm_name:
-        case 'gsm': # Shorthand for GSM08
+        case "gsm":  # Shorthand for GSM08
             return GlobalSkyModel()
-        case 'gsm08':
+        case "gsm08":
             return GlobalSkyModel()
-        case 'gsm16':
+        case "gsm16":
             return GlobalSkyModel16()
-        case 'lfsm':
+        case "lfsm":
             return LowFrequencySkyModel()
-        case 'haslam':
+        case "haslam":
             return HaslamSkyModel()
 
 
-def init_observer(gsm_name: str='gsm08'):
-    """ Initialize a GDSM Observer object by ID/name
+def init_observer(gsm_name: str = "gsm08"):
+    """Initialize a GDSM Observer object by ID/name
 
     Returns an observer (subclass of BaseObserver), where the diffuse sky is created from one of:
       * **GSM08:** A model of diffuse Galactic radio emission from 10 MHz to 100 GHz,
@@ -69,13 +62,13 @@ def init_observer(gsm_name: str='gsm08'):
     """
     gsm_name = gsm_name.lower().strip()
     match gsm_name:
-        case 'gsm': # Shorthand for GSM08
+        case "gsm":  # Shorthand for GSM08
             return GSMObserver()
-        case 'gsm08':
+        case "gsm08":
             return GSMObserver()
-        case 'gsm16':
+        case "gsm16":
             return GSMObserver16()
-        case 'lfsm':
+        case "lfsm":
             return LFSMObserver()
-        case 'haslam':
+        case "haslam":
             return HaslamObserver()

@@ -1,19 +1,20 @@
+import healpy as hp
 import numpy as np
 from astropy import units
-import healpy as hp
-from scipy.interpolate import interp1d
+from astropy.utils.data import download_file
 
-from .component_data import HASLAM_FILEPATH
-from .base_skymodel import BaseSkyModel
 from .base_observer import BaseObserver
+from .base_skymodel import BaseSkyModel
+from .component_data import HASLAM_DATA_URL
 
 T_CMB = 2.725
 
-class HaslamSkyModel(BaseSkyModel):
-    """ Haslam destriped, desourced sky model """
 
-    def __init__(self,  freq_unit='MHz', spectral_index=-2.6, include_cmb=False):
-        """ Generate a sky model at a given frequency based off Haslam 408 MHz map
+class HaslamSkyModel(BaseSkyModel):
+    """Haslam destriped, desourced sky model"""
+
+    def __init__(self, freq_unit="MHz", spectral_index=-2.6, include_cmb=False):
+        """Generate a sky model at a given frequency based off Haslam 408 MHz map
 
         Parameters
         ----------
@@ -24,7 +25,7 @@ class HaslamSkyModel(BaseSkyModel):
         Notes
         -----
         The basemap is the destriped and desoruced Haslam map from Remazeilles (2015)
-        A T_CMB value of 2.725 K is subtracted to account for the microwave background component. 
+        A T_CMB value of 2.725 K is subtracted to account for the microwave background component.
 
         This is a crude model; the sky's spectral index changes with sidereal time
         and a singular spectral index is not realistic. Here are some measured values
@@ -42,15 +43,24 @@ class HaslamSkyModel(BaseSkyModel):
 
         References
         ----------
-        Remazeilles et al (2015), improved Haslam map, https://doi.org/10.1093/mnras/stv1274 
+        Remazeilles et al (2015), improved Haslam map, https://doi.org/10.1093/mnras/stv1274
         Mozdzen et al (2016), EDGES high-band, https://doi.org/10.1093/mnras/stw2696
         Mozdzen et al (2019), EDGES low-band, https://doi.org/10.1093/mnras/sty3410
         Dickinson et al (2019), C-BASS experiment, https://doi.org/10.1093/mnras/stz522
         """
-        data_unit = 'K'
-        basemap = 'Haslam'
+        data_unit = "K"
+        basemap = "Haslam"
 
-        super(HaslamSkyModel, self).__init__('Haslam', HASLAM_FILEPATH, freq_unit, data_unit, basemap)
+        # download component data as needed using astropy cache
+        HASLAM_FILEPATH = download_file(
+            HASLAM_DATA_URL,
+            cache=True,
+            show_progress=True,
+        )
+
+        super(HaslamSkyModel, self).__init__(
+            "Haslam", HASLAM_FILEPATH, freq_unit, data_unit, basemap
+        )
         self.spectral_index = spectral_index
         self.data = hp.read_map(self.fits, dtype=np.float64) - T_CMB
         self.nside = 512
@@ -58,7 +68,7 @@ class HaslamSkyModel(BaseSkyModel):
         self.include_cmb = include_cmb
 
     def generate(self, freqs):
-        """ Generate a global sky model at a given frequency or frequencies
+        """Generate a global sky model at a given frequency or frequencies
 
         Parameters
         ----------
@@ -74,12 +84,14 @@ class HaslamSkyModel(BaseSkyModel):
         """
         # convert frequency values into Hz
         freqs = np.array(freqs) * units.Unit(self.freq_unit)
-        freqs_mhz = freqs.to('MHz').value
+        freqs_mhz = freqs.to("MHz").value
 
         if isinstance(freqs_mhz, float):
             freqs_mhz = np.array([freqs_mhz])
 
-        map_out = np.outer((freqs_mhz / 408.0) ** (self.spectral_index), self.data).squeeze()
+        map_out = np.outer(
+            (freqs_mhz / 408.0) ** (self.spectral_index), self.data
+        ).squeeze()
 
         if self.include_cmb:
             map_out += T_CMB
@@ -90,7 +102,7 @@ class HaslamSkyModel(BaseSkyModel):
 
 class HaslamObserver(BaseObserver):
     def __init__(self):
-        """ Initialize the Observer object.
+        """Initialize the Observer object.
 
         Calls ephem.Observer.__init__ function and adds on gsm
         """

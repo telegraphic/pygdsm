@@ -19,25 +19,28 @@ PCA data from: space.mit.edu/home/angelica/gsm
 """
 
 import numpy as np
-from scipy.interpolate import interp1d, pchip
-import h5py
 from astropy import units
-import healpy as hp
+from astropy.utils.data import download_file
+from scipy.interpolate import interp1d, pchip
 
-
-from .component_data import GSM_FILEPATH
-from .plot_utils import show_plt
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
+from .component_data import GSM_DATA_URL
+from .plot_utils import show_plt
 
 T_CMB = 2.725
 
 class GlobalSkyModel(BaseSkyModel):
-    """ Global sky model (GSM) class for generating sky models.
-    """
+    """Global sky model (GSM) class for generating sky models."""
 
-    def __init__(self, freq_unit='MHz', basemap='haslam', interpolation='pchip', include_cmb=False):
-        """ Global sky model (GSM) class for generating sky models.
+    def __init__(
+        self,
+        freq_unit="MHz",
+        basemap="haslam",
+        interpolation="pchip",
+        include_cmb=False,
+    ):
+        """Global sky model (GSM) class for generating sky models.
 
         Upon initialization, the map PCA data are loaded into memory and interpolation
         functions are pre-computed.
@@ -72,22 +75,32 @@ class GlobalSkyModel(BaseSkyModel):
 
         """
 
-        try:
-            assert basemap in {'5deg', 'wmap', 'haslam'}
-        except AssertionError:
-            raise RuntimeError("GSM basemap unknown: %s. Choose '5deg', 'haslam' or 'wmap'" % basemap)
+        # download component data as needed using astropy cache
+        GSM_FILEPATH = download_file(
+            GSM_DATA_URL,
+            cache=True,
+            show_progress=True,
+        )
 
         try:
-            assert interpolation in {'cubic', 'pchip'}
+            assert basemap in {"5deg", "wmap", "haslam"}
+        except AssertionError:
+            raise RuntimeError(
+                "GSM basemap unknown: %s. Choose '5deg', 'haslam' or 'wmap'" % basemap
+            )
+
+        try:
+            assert interpolation in {"cubic", "pchip"}
         except AssertionError:
             raise RuntimeError("Interpolation must be set to either 'cubic' or 'pchip'")
 
-        data_unit = 'K'
-        super(GlobalSkyModel, self).__init__('GSM2008', GSM_FILEPATH, freq_unit, data_unit, basemap)
+        data_unit = "K"
+        super(GlobalSkyModel, self).__init__(
+            "GSM2008", GSM_FILEPATH, freq_unit, data_unit, basemap
+        )
 
         self.interpolation_method = interpolation
         self.include_cmb = include_cmb
-
 
         self.pca_map_data = None
         self.interp_comps = None
@@ -98,37 +111,39 @@ class GlobalSkyModel(BaseSkyModel):
         self.nside = 512
 
     def update_interpolants(self):
-       # Choose the PCA map to load from the HDF5 file
-        pca_map_dict = {"5deg": "component_maps_5deg",
-                        "haslam": "component_maps_408locked",
-                        "wmap": "component_maps_23klocked"}
+        # Choose the PCA map to load from the HDF5 file
+        pca_map_dict = {
+            "5deg": "component_maps_5deg",
+            "haslam": "component_maps_408locked",
+            "wmap": "component_maps_23klocked",
+        }
         pca_map_key = pca_map_dict[self.basemap]
         self.pca_map_data = self.h5[pca_map_key][:]
 
         # Now, load the PCA eigenvalues
         pca_table = self.h5["components"][:]
         pca_freqs_mhz = pca_table[:, 0]
-        pca_scaling   = pca_table[:, 1]
-        pca_comps     = pca_table[:, 2:].T
+        pca_scaling = pca_table[:, 1]
+        pca_comps = pca_table[:, 2:].T
 
         # Interpolate to the desired frequency values
         ln_pca_freqs = np.log(pca_freqs_mhz)
 
-        if self.interpolation_method == 'cubic':
-            spl_scaling = interp1d(ln_pca_freqs, np.log(pca_scaling), kind='cubic')
-            spl1 = interp1d(ln_pca_freqs,   pca_comps[0],   kind='cubic')
-            spl2 = interp1d(ln_pca_freqs,   pca_comps[1],   kind='cubic')
-            spl3 = interp1d(ln_pca_freqs,   pca_comps[2],   kind='cubic')
+        if self.interpolation_method == "cubic":
+            spl_scaling = interp1d(ln_pca_freqs, np.log(pca_scaling), kind="cubic")
+            spl1 = interp1d(ln_pca_freqs, pca_comps[0], kind="cubic")
+            spl2 = interp1d(ln_pca_freqs, pca_comps[1], kind="cubic")
+            spl3 = interp1d(ln_pca_freqs, pca_comps[2], kind="cubic")
 
         else:
             spl_scaling = pchip(ln_pca_freqs, np.log(pca_scaling))
-            spl1 = pchip(ln_pca_freqs,   pca_comps[0])
-            spl2 = pchip(ln_pca_freqs,   pca_comps[1])
-            spl3 = pchip(ln_pca_freqs,   pca_comps[2])
+            spl1 = pchip(ln_pca_freqs, pca_comps[0])
+            spl2 = pchip(ln_pca_freqs, pca_comps[1])
+            spl3 = pchip(ln_pca_freqs, pca_comps[2])
         self.interp_comps = (spl_scaling, spl1, spl2, spl3)
 
     def generate(self, freqs):
-        """ Generate a global sky model at a given frequency or frequencies
+        """Generate a global sky model at a given frequency or frequencies
 
         Parameters
         ----------
@@ -144,7 +159,7 @@ class GlobalSkyModel(BaseSkyModel):
         """
         # convert frequency values into Hz
         freqs = np.array(freqs) * units.Unit(self.freq_unit)
-        freqs_mhz = freqs.to('MHz').value
+        freqs_mhz = freqs.to("MHz").value
 
         if isinstance(freqs_mhz, float):
             freqs_mhz = np.array([freqs_mhz])
@@ -156,16 +171,16 @@ class GlobalSkyModel(BaseSkyModel):
             raise RuntimeError("Frequency values lie outside 10 MHz < f < 94 GHz")
 
         # Load interpolators and do interpolation
-        ln_freqs     = np.log(freqs_mhz)
+        ln_freqs = np.log(freqs_mhz)
         spl_scaling, spl1, spl2, spl3 = self.interp_comps
         comps = np.row_stack((spl1(ln_freqs), spl2(ln_freqs), spl3(ln_freqs)))
         scaling = np.exp(spl_scaling(ln_freqs))
 
         # Finally, compute the dot product via einsum (awesome function)
         # c=comp, f=freq, p=pixel. We want to dot product over c for each freq
-        #print comps.shape, self.pca_map_data.shape, scaling.shape
-        map_out = np.einsum('cf,pc,f->fp', comps, self.pca_map_data, scaling)
-        
+        # print comps.shape, self.pca_map_data.shape, scaling.shape
+        map_out = np.einsum("cf,pc,f->fp", comps, self.pca_map_data, scaling)
+
         if self.include_cmb:
             map_out += T_CMB
 
@@ -173,8 +188,6 @@ class GlobalSkyModel(BaseSkyModel):
             map_out = map_out[0]
         self.generated_map_data = map_out
         self.generated_map_freqs = freqs
-
-
 
         return map_out
 
@@ -199,7 +212,7 @@ class GlobalSkyModel(BaseSkyModel):
 
 class GSMObserver(BaseObserver):
     def __init__(self):
-        """ Initialize the Observer object.
+        """Initialize the Observer object.
 
         Calls ephem.Observer.__init__ function and adds on gsm
         """

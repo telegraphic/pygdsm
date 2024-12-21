@@ -1,19 +1,21 @@
+import healpy as hp
 import numpy as np
 from astropy import units
-import healpy as hp
+from astropy.utils.data import download_file
 from scipy.interpolate import interp1d
 
-from .component_data import LFSM_FILEPATH
-from .base_skymodel import BaseSkyModel
 from .base_observer import BaseObserver
+from .base_skymodel import BaseSkyModel
+from .component_data import LFSM_DATA_URL
 
 T_CMB = 2.725
+
 
 def rotate_equatorial_to_galactic(map):
     """
     Given a map in equatorial coordinates, convert it to Galactic coordinates.
     """
-    rotCG = hp.rotator.Rotator(coord=('C', 'G'))
+    rotCG = hp.rotator.Rotator(coord=("C", "G"))
     nSides = hp.pixelfunc.npix2nside(map.size)
     theta, phi = hp.pixelfunc.pix2ang(nSides, range(map.size))
     theta_new, phi_new = rotCG(theta, phi, inv=True)
@@ -22,11 +24,10 @@ def rotate_equatorial_to_galactic(map):
 
 
 class LowFrequencySkyModel(BaseSkyModel):
-    """ LWA1 Low Frequency Sky Model
-    """
+    """LWA1 Low Frequency Sky Model"""
 
-    def __init__(self,  freq_unit='MHz', include_cmb=False):
-        """ Global sky model (GSM) class for generating sky models.
+    def __init__(self, freq_unit="MHz", include_cmb=False):
+        """Global sky model (GSM) class for generating sky models.
 
         Parameters
         ----------
@@ -34,28 +35,38 @@ class LowFrequencySkyModel(BaseSkyModel):
         include_cmb (bool):  Choose whether to include the CMB. Defaults to False. A value of
                              T_CMB = 2.725 K is used if True.
         """
-        data_unit = 'K'
-        basemap = 'LFSS'
-        super(LowFrequencySkyModel, self).__init__('LFSM', LFSM_FILEPATH, freq_unit, data_unit, basemap)
+        data_unit = "K"
+        basemap = "LFSS"
 
-        self.pca_map = self.h5['lfsm_component_maps_3.0deg.dat'][:]
-        self.pca_components =  self.h5['lfsm_components.dat'][:]
+        # download component data as needed using astropy cache
+        LFSM_FILEPATH = download_file(
+            LFSM_DATA_URL,
+            cache=True,
+            show_progress=True,
+        )
+
+        super(LowFrequencySkyModel, self).__init__(
+            "LFSM", LFSM_FILEPATH, freq_unit, data_unit, basemap
+        )
+
+        self.pca_map = self.h5["lfsm_component_maps_3.0deg.dat"][:]
+        self.pca_components = self.h5["lfsm_components.dat"][:]
         self.nside = 256
 
         self.include_cmb = include_cmb
 
-        freqs  = self.pca_components[:, 0]
+        freqs = self.pca_components[:, 0]
         sigmas = self.pca_components[:, 1]
-        comps  = self.pca_components[:, 2:]
+        comps = self.pca_components[:, 2:]
 
-        self.scaleFunc = interp1d(np.log(freqs), np.log(sigmas), kind='slinear')
+        self.scaleFunc = interp1d(np.log(freqs), np.log(sigmas), kind="slinear")
 
         self.compFuncs = []
         for i in range(comps.shape[1]):
-            self.compFuncs.append(interp1d(np.log(freqs), comps[:, i], kind='cubic'))
+            self.compFuncs.append(interp1d(np.log(freqs), comps[:, i], kind="cubic"))
 
     def generate(self, freqs):
-        """ Generate a global sky model at a given frequency or frequencies
+        """Generate a global sky model at a given frequency or frequencies
 
         Parameters
         ----------
@@ -71,7 +82,7 @@ class LowFrequencySkyModel(BaseSkyModel):
         """
         # convert frequency values into Hz
         freqs = np.array(freqs) * units.Unit(self.freq_unit)
-        freqs_mhz = freqs.to('MHz').value
+        freqs_mhz = freqs.to("MHz").value
 
         if isinstance(freqs_mhz, float):
             freqs_mhz = np.array([freqs_mhz])
@@ -87,7 +98,7 @@ class LowFrequencySkyModel(BaseSkyModel):
             if freqs.ndim > 0:
                 map_out = np.zeros(shape=(freqs.shape[0], hp.nside2npix(self.nside)))
             else:
-                map_out = np.zeros(shape=(1, hp.nside2npix(self.nside))) 
+                map_out = np.zeros(shape=(1, hp.nside2npix(self.nside)))
         else:
             map_out = np.zeros(shape=(1, hp.nside2npix(self.nside)))
 
@@ -96,7 +107,7 @@ class LowFrequencySkyModel(BaseSkyModel):
                 map_out[ff] += compFunc(np.log(freqs_mhz[ff])) * self.pca_map[:, i]
             map_out[ff] *= np.exp(self.scaleFunc(np.log(freqs_mhz[ff])))
 
-            map_out[ff] =  rotate_equatorial_to_galactic(map_out[ff])
+            map_out[ff] = rotate_equatorial_to_galactic(map_out[ff])
 
         map_out = map_out.squeeze()
 
@@ -110,7 +121,7 @@ class LowFrequencySkyModel(BaseSkyModel):
 
 class LFSMObserver(BaseObserver):
     def __init__(self):
-        """ Initialize the Observer object.
+        """Initialize the Observer object.
 
         Calls ephem.Observer.__init__ function and adds on gsm
         """

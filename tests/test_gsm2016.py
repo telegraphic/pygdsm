@@ -1,31 +1,30 @@
 import sys
+
 sys.path.append("/workdata/pygdsm")
 
-import pylab as plt
-import healpy as hp
-import numpy as np
 from datetime import datetime
 
+import healpy as hp
+import numpy as np
+import pylab as plt
 import pytest
 
-from pygdsm import GlobalSkyModel16, GSMObserver16
-from pygdsm import GlobalSkyModel, GSMObserver
+from pygdsm import GlobalSkyModel, GlobalSkyModel16, GSMObserver, GSMObserver16
 
 
 def test_compare_gsm_to_old():
-    g = GlobalSkyModel16(freq_unit='GHz', resolution='hi', data_unit='TCMB')
+    g = GlobalSkyModel16(freq_unit="GHz", resolution="hi", data_unit="TCMB")
     d = g.generate(0.408)
     g.view()
 
-    g_old = GlobalSkyModel(freq_unit='GHz', basemap='haslam')
+    g_old = GlobalSkyModel(freq_unit="GHz", basemap="haslam")
     d_old = g_old.generate(0.408)
     g_old.view()
 
 
 def test_observer_test():
-
     # Setup observatory location - in this case, Parkes Australia
-    (latitude, longitude, elevation) = ('-32.998370', '148.263659', 100)
+    (latitude, longitude, elevation) = ("-32.998370", "148.263659", 100)
     ov = GSMObserver16()
     ov.lon = longitude
     ov.lat = latitude
@@ -45,18 +44,19 @@ def test_observer_test():
     d = ov.view(logged=True)
     plt.show()
 
+
 def test_interp():
     f = np.arange(40, 80, 5)
-    for interp in ('pchip', 'cubic'):
+    for interp in ("pchip", "cubic"):
         for SkyModel in (GlobalSkyModel, GlobalSkyModel16):
-            name = str(SkyModel).strip("<>").split('.')[-1].strip("' ")
-            gsm = SkyModel(freq_unit='MHz', interpolation=interp)
+            name = str(SkyModel).strip("<>").split(".")[-1].strip("' ")
+            gsm = SkyModel(freq_unit="MHz", interpolation=interp)
             d = gsm.generate(f)
 
             sky_spec = d.mean(axis=1)
             fit = np.poly1d(np.polyfit(f, sky_spec, 5))(f)
 
-            plt.plot(f, sky_spec - fit, label=f'{name}: {interp}')
+            plt.plot(f, sky_spec - fit, label=f"{name}: {interp}")
 
     plt.xlabel("Frequency [MHz]")
     plt.ylabel("Residual [K]")
@@ -64,29 +64,33 @@ def test_interp():
     plt.show()
 
 
-
 def test_gsm_opts():
-    g = GlobalSkyModel16(freq_unit='GHz', resolution='hi', data_unit='TCMB')
+    g = GlobalSkyModel16(freq_unit="GHz", resolution="hi", data_unit="TCMB")
     d = g.generate(0.408)
-    g = GlobalSkyModel16(freq_unit='GHz', resolution='lo', data_unit='MJysr')
+    g = GlobalSkyModel16(freq_unit="GHz", resolution="lo", data_unit="MJysr")
     d = g.generate(0.408)
-    g = GlobalSkyModel16(freq_unit='MHz', resolution='lo', data_unit='TRJ')
+    g = GlobalSkyModel16(freq_unit="MHz", resolution="lo", data_unit="TRJ")
     d = g.generate(408)
 
     with pytest.raises(RuntimeError):
         g.generate(5e12)
 
     with pytest.raises(RuntimeError):
-        g = GlobalSkyModel16(resolution='oh_hai')
+        g = GlobalSkyModel16(resolution="oh_hai")
 
     with pytest.raises(RuntimeError):
-        g = GlobalSkyModel16(data_unit='furlongs/fortnight')
+        g = GlobalSkyModel16(data_unit="furlongs/fortnight")
+
 
 def test_cmb_removal():
-    g = GlobalSkyModel16(freq_unit='GHz', resolution='lo', data_unit='TCMB', include_cmb=False)
+    g = GlobalSkyModel16(
+        freq_unit="GHz", resolution="lo", data_unit="TCMB", include_cmb=False
+    )
     sky_no_cmb = g.generate(400)
-    g = GlobalSkyModel16(freq_unit='GHz', resolution='lo', data_unit='TCMB', include_cmb=True)
-    sky_with_cmb = g.generate(400)    
+    g = GlobalSkyModel16(
+        freq_unit="GHz", resolution="lo", data_unit="TCMB", include_cmb=True
+    )
+    sky_with_cmb = g.generate(400)
 
     T_cmb = (sky_with_cmb - sky_no_cmb).mean()
     print(T_cmb)
