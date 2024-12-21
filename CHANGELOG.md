@@ -1,3 +1,6 @@
+* 1.6.0 (2024.12.21) - Moved data to datacentral.org.au, now downloads maps only as needed.
+                       BaseObserver.generate() now allow for the horizon to be set (thanks D. McKenna).
+                       Removed case statements to support older Python versions (thanks @ sjoerd-bouma)
 * 1.5.4 (2024.04.15) - Added observed_gsm property to `BaseObserver`,
                        Added `hpix2sky` and `sky2hpix` helpers,
                        Now using `query_disc` to find pixels below horizon (neater code).
