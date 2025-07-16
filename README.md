@@ -47,7 +47,7 @@ Examples
 
 To get a quick feel of what `PyGDSM` does, have a look at the
 [GSM2008 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm_quickstart.ipynb), and the new
-[GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm2016_quickstart.ipynb).
+[GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm16_quickstart.ipynb).
 
 Q & A
 -----
@@ -76,7 +76,7 @@ Q & A
      provide methods for programatically generating sky models. The Zheng et. al. github repo is a
      simple, low-dependency, command line tool. As of PyGDSM 1.4.0, we have implemented improved interpolation
      via cubic spline or PCHIP, which avoids discontinuities identified using the 2016 method. Have a look at the
-     [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm2016_quickstart.ipynb)
+     [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm16_quickstart.ipynb)
      to get a feel for what `PyGDSM` does.
 
 **Q. Why does this package download so much data when first run?**
