@@ -90,7 +90,7 @@ class BaseObserver(ephem.Observer):
 
         # Checking this separately encase someone tries to be smart and sets both the attribute and kwarg
         if self._horizon_elevation < 0:
-                raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees ({np.rad2deg(horizon_elevation)=}).")
+            raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees (currently {np.rad2deg(horizon_elevation)}).")
 
         # Match pyephem convertion -- string is degrees, int/float is rad
         horizon_elevation = ephem.degrees(horizon_elevation or 0.0)
@@ -102,7 +102,7 @@ class BaseObserver(ephem.Observer):
 
         # Checking this separately encase someone tries to be smart and sets both the attribute and kwarg
         if self._horizon_elevation < 0:
-                raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees ({np.rad2deg(horizon_elevation)=}).")
+            raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees (currently {np.rad2deg(horizon_elevation)}).")
 
         # Rotation is quite slow, only recompute if time or frequency has changed, or it has never been run
         if time_has_changed or self.observed_sky is None or horizon_has_changed:
