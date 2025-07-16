@@ -21,7 +21,7 @@ with open("requirements_test.txt", "r") as fh:
 
 setup(
     name="pygdsm",
-    version="1.6.0",
+    version="1.6.1",
     description="Python Global Sky Model of diffuse Galactic radio emission",
     long_description=long_description,
     long_description_content_type="text/markdown",

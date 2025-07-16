@@ -1,3 +1,4 @@
+* 1.6.1 (2025.07.16) - Adding zenodo as a backup data source.
 * 1.6.0 (2024.12.21) - Moved data to datacentral.org.au, now downloads maps only as needed.
                        BaseObserver.generate() now allow for the horizon to be set (thanks D. McKenna).
                        Removed case statements to support older Python versions (thanks @ sjoerd-bouma)
