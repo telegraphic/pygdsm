@@ -20,12 +20,11 @@ PCA data from: space.mit.edu/home/angelica/gsm
 
 import numpy as np
 from astropy import units
-from astropy.utils.data import download_file
 from scipy.interpolate import interp1d, pchip
 
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
-from .component_data import GSM_DATA_URL
+from .component_data import GSM_DATA_URL, download_from_url_list
 from .plot_utils import show_plt
 
 T_CMB = 2.725
@@ -76,11 +75,7 @@ class GlobalSkyModel(BaseSkyModel):
         """
 
         # download component data as needed using astropy cache
-        GSM_FILEPATH = download_file(
-            GSM_DATA_URL,
-            cache=True,
-            show_progress=True,
-        )
+        GSM_FILEPATH = download_from_url_list(GSM_DATA_URL)
 
         try:
             assert basemap in {"5deg", "wmap", "haslam"}

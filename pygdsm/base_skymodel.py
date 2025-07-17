@@ -40,7 +40,7 @@ class BaseSkyModel(object):
         Parameters
         ----------
         name (str):      Name of GSM
-        filepath (str):    Path to HDF5 data / FITS data (healpix) to load
+        filepath (str):  Path to HDF5 data / FITS data (healpix) to load
         freq_unit (str): Frequency unit (MHz / GHz / Hz)
         data_unit (str): Unit for pixel scale (e.g. K)
         basemap (str):   Map used as a basis for spatial structure in PCA fit.

@@ -5,7 +5,7 @@ from astropy.utils.data import download_file
 
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
-from .component_data import HASLAM_DATA_URL
+from .component_data import HASLAM_DATA_URL, download_from_url_list
 
 T_CMB = 2.725
 
@@ -52,11 +52,7 @@ class HaslamSkyModel(BaseSkyModel):
         basemap = "Haslam"
 
         # download component data as needed using astropy cache
-        HASLAM_FILEPATH = download_file(
-            HASLAM_DATA_URL,
-            cache=True,
-            show_progress=True,
-        )
+        HASLAM_FILEPATH = download_from_url_list(HASLAM_DATA_URL)
 
         super(HaslamSkyModel, self).__init__(
             "Haslam", HASLAM_FILEPATH, freq_unit, data_unit, basemap

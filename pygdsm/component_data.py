@@ -37,20 +37,31 @@ DATA_URLS = [
             HASLAM_DATA_URL
             ]
 
+def download_from_url_list(url_list: list[str] | str):
+    """Download from a list of URLs, trying each in turn.
+
+    Args:
+        url_list (list[str] | str): List of URLs to try, or a single URL.
+
+    Returns:
+        str: Path to the downloaded file.
+    """
+    if isinstance(url_list, str):
+        url_list = [url_list]
+
+    for url in url_list:
+        try:
+            return download_file(url, cache=True, show_progress=True)
+        except Exception as e:
+            print(f"Failed to download {url}: {e}")
+    raise RuntimeError("All URLs failed to download.")
+
+
 def download_map_data():
     """Download component data."""
     print("Checking for component data files...")
     for URL in DATA_URLS:
-        try:
-            download_file(URL[0], cache=True, show_progress=True)
-        except Exception as e:
-            print(f"Failed to download {URL[0]}: {e}. Trying alternative URL...")
-            try:
-                # Try the alternative URL
-                download_file(URL[1], cache=True, show_progress=True)
-            except Exception as e:
-                print(f"Failed to download {URL[1]}: {e}")
-                raise RuntimeError(f"Failed to download data from both URLs: {URL[0]} and {URL[1]}")
+        download_from_url_list(URL)
 
     CACHE_PATH = get_cache_dir()
     print(f"Data saved in {CACHE_PATH}")

@@ -1,12 +1,11 @@
 import healpy as hp
 import numpy as np
 from astropy import units
-from astropy.utils.data import download_file
 from scipy.interpolate import interp1d, pchip
 
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
-from .component_data import GSM2016_DATA_URL
+from .component_data import GSM2016_DATA_URL, download_from_url_list
 
 kB = 1.38065e-23
 C = 2.99792e8
@@ -91,11 +90,7 @@ class GlobalSkyModel16(BaseSkyModel):
         """
 
         # download component data as needed using astropy cache
-        GSM2016_FILEPATH = download_file(
-            GSM2016_DATA_URL,
-            cache=True,
-            show_progress=True,
-        )
+        GSM2016_FILEPATH = download_from_url_list(GSM2016_DATA_URL)
 
         if data_unit not in ["MJysr", "TCMB", "TRJ"]:
             raise RuntimeError(

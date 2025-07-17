@@ -9,17 +9,11 @@ from pathlib import Path
 
 import pytest
 
-from astropy.utils.data import download_file
-
 from pygdsm.base_skymodel import BaseSkyModel
-from pygdsm.component_data import GSM_DATA_URL
+from pygdsm.component_data import GSM_DATA_URL, download_from_url_list
 
 # download component data as needed using astropy cache
-GSM_FILEPATH = download_file(
-    GSM_DATA_URL,
-    cache=True,
-    show_progress=True,
-)
+GSM_FILEPATH = download_from_url_list(GSM_DATA_URL)
 
 def test_base_skymodel_init():
     gsm = BaseSkyModel(

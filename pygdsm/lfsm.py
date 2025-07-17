@@ -1,12 +1,11 @@
 import healpy as hp
 import numpy as np
 from astropy import units
-from astropy.utils.data import download_file
 from scipy.interpolate import interp1d
 
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
-from .component_data import LFSM_DATA_URL
+from .component_data import LFSM_DATA_URL, download_from_url_list
 
 T_CMB = 2.725
 
@@ -39,11 +38,7 @@ class LowFrequencySkyModel(BaseSkyModel):
         basemap = "LFSS"
 
         # download component data as needed using astropy cache
-        LFSM_FILEPATH = download_file(
-            LFSM_DATA_URL,
-            cache=True,
-            show_progress=True,
-        )
+        LFSM_FILEPATH = download_from_url_list(LFSM_DATA_URL)
 
         super(LowFrequencySkyModel, self).__init__(
             "LFSM", LFSM_FILEPATH, freq_unit, data_unit, basemap

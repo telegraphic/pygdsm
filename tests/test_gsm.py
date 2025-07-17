@@ -13,14 +13,13 @@ import healpy as hp
 import numpy as np
 import pytest
 from astropy.coordinates import SkyCoord
-from astropy.utils.data import download_file
 
 from pygdsm import GlobalSkyModel
-from pygdsm.component_data import GSM2008_TEST_DATA_URL
+from pygdsm.component_data import GSM2008_TEST_DATA_URL, download_from_url_list
 
 
 # Download test data as needed (stored in astropy cache)
-GSM2008_TEST_DATA = download_file(GSM2008_TEST_DATA_URL, cache=True, show_progress=True)
+GSM2008_TEST_DATA = download_from_url_list(GSM2008_TEST_DATA_URL)
 
 def test_gsm_generate():
     """Test maps generate successfully, and that output shapes are correct."""
