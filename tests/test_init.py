@@ -33,6 +33,13 @@ def test_init():
     assert isinstance(init_observer("lfsm"), LFSMObserver)
     assert isinstance(init_observer("haslam"), HaslamObserver)
 
+    gsm16 = init_gsm(
+        "gsm16",
+        freq_unit="MHz",
+        include_cmb=True,
+        interpolation="PCHIP",
+    )
+    assert isinstance(gsm16, GlobalSkyModel16)
 
 if __name__ == "__main__":
     test_init()

@@ -8,7 +8,7 @@ from .component_data import download_map_data as download_map_data
 GlobalSkyModel08 = GlobalSkyModel
 GSMObserver08 = GSMObserver
 
-def init_gsm(gsm_name: str = "gsm08"):
+def init_gsm(gsm_name: str = "gsm08", *args, **kwargs):
     """Initialize a GDSM object by ID/name
 
     Returns a diffuse sky model (subclass of BaseSkyModel), based on one of:
@@ -30,21 +30,21 @@ def init_gsm(gsm_name: str = "gsm08"):
     gsm_name = gsm_name.lower().strip()
 
     if gsm_name == 'gsm': # Shorthand for GSM08
-        return GlobalSkyModel()
+        return GlobalSkyModel(*args, **kwargs)
     elif gsm_name == 'gsm08':
-        return GlobalSkyModel()
+        return GlobalSkyModel(*args, **kwargs)
     elif gsm_name == 'gsm16':
-        return GlobalSkyModel16()
+        return GlobalSkyModel16(*args, **kwargs)
     elif gsm_name == 'lfsm':
-        return LowFrequencySkyModel()
+        return LowFrequencySkyModel(*args, **kwargs)
     elif gsm_name == 'haslam':
-        return HaslamSkyModel()
+        return HaslamSkyModel(*args, **kwargs)
     else:
         raise ValueError(f'Invalid model specification "{gsm_name}"')
 
 
 
-def init_observer(gsm_name: str = "gsm08"):
+def init_observer(gsm_name: str = "gsm08", *args, **kwargs):
     """Initialize a GDSM Observer object by ID/name
 
     Returns an observer (subclass of BaseObserver), where the diffuse sky is created from one of:
@@ -66,14 +66,14 @@ def init_observer(gsm_name: str = "gsm08"):
     gsm_name = gsm_name.lower().strip()
 
     if gsm_name == 'gsm': # Shorthand for GSM08
-        return GSMObserver()
+        return GSMObserver(*args, **kwargs)
     elif gsm_name == 'gsm08':
-        return GSMObserver()
+        return GSMObserver(*args, **kwargs)
     elif gsm_name == 'gsm16':
-        return GSMObserver16()
+        return GSMObserver16(*args, **kwargs)
     elif gsm_name == 'lfsm':
-        return LFSMObserver()
+        return LFSMObserver(*args, **kwargs)
     elif gsm_name == 'haslam':
-        return HaslamObserver()
+        return HaslamObserver(*args, **kwargs)
     else:
         raise ValueError(f'Invalid model specification "{gsm_name}"')
