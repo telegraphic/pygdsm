@@ -1,3 +1,4 @@
+from __future__ import annotations
 from astropy.utils.data import conf, download_file
 from astropy.config import get_cache_dir
 
