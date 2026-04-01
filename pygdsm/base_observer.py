@@ -24,11 +24,17 @@ class BaseObserver(ephem.Observer):
     def __init__(self, gsm):
         """Initialize the Observer object.
 
-        Calls ephem.Observer.__init__ function and adds on gsm
+        Calls ephem.Observer.__init__ function and adds on gsm.
+
+        Parameters
+        ----------
+        gsm: sky model class or instance
+            A pre-instantiated sky model object, or a sky model class to be
+            instantiated with default arguments.
         """
         super(BaseObserver, self).__init__()
         self.observed_sky = None
-        self.gsm = gsm()
+        self.gsm = gsm() if isinstance(gsm, type) else gsm
         self._setup()
 
     def _setup(self):

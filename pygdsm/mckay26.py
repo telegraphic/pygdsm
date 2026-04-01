@@ -112,9 +112,18 @@ class McKaySkyModel(GlobalSkyModel16):
 
 
 class McKayObserver(BaseObserver):
-    def __init__(self):
+    def __init__(self, gsm=None, **kwargs):
         """Initialize the Observer object.
 
-        Calls ephem.Observer.__init__ function and adds on gsm
+        Parameters
+        ----------
+        gsm: McKaySkyModel instance, optional
+            A pre-instantiated sky model. If not provided, one is created
+            using any supplied keyword arguments.
+        **kwargs:
+            Keyword arguments passed to McKaySkyModel (e.g. freq_unit,
+            resolution, theta_rot, phi_rot).
         """
-        super(McKayObserver, self).__init__(gsm=McKaySkyModel)
+        if gsm is None:
+            gsm = McKaySkyModel(**kwargs)
+        super(McKayObserver, self).__init__(gsm=gsm)

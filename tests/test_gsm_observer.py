@@ -8,6 +8,8 @@ from astropy.time import Time
 import pytest
 
 from pygdsm import GSMObserver, GSMObserver16, LFSMObserver
+from pygdsm import GlobalSkyModel, GlobalSkyModel16, LowFrequencySkyModel, HaslamSkyModel, HaslamObserver
+from pygdsm.mckay26 import McKaySkyModel, McKayObserver
 
 matplotlib.use("Agg")
 
@@ -118,6 +120,78 @@ def test_observed_ortho_85deg_horizon(hour):
     return plt.gcf()
 
 
+def _setup_observer(ov):
+    ov.lon = "-118.2"
+    ov.lat = "37.2"
+    ov.elev = 1222
+    ov.date = datetime(2000, 1, 1, 12, 0)
+    return ov
+
+
+def test_observer_kwargs_gsm16():
+    """GSMObserver16 should forward kwargs to GlobalSkyModel16."""
+    ov = GSMObserver16(include_cmb=True, resolution="low", freq_unit="MHz")
+    assert ov.gsm.include_cmb is True
+    assert ov.gsm.resolution == "low"
+
+
+def test_observer_kwargs_gsm08():
+    """GSMObserver should forward kwargs to GlobalSkyModel."""
+    ov = GSMObserver(basemap="haslam")
+    assert ov.gsm.basemap == "haslam"
+
+
+def test_observer_kwargs_lfsm():
+    """LFSMObserver should forward kwargs to LowFrequencySkyModel."""
+    ov = LFSMObserver(include_cmb=True)
+    assert ov.gsm.include_cmb is True
+
+
+def test_observer_kwargs_haslam():
+    """HaslamObserver should forward kwargs to HaslamSkyModel."""
+    ov = HaslamObserver(spectral_index=-2.8, freq_unit="GHz")
+    assert ov.gsm.spectral_index == -2.8
+    assert ov.gsm.freq_unit == "GHz"
+
+
+def test_observer_kwargs_mckay():
+    """McKayObserver should forward kwargs to McKaySkyModel."""
+    ov = McKayObserver(resolution="low")
+    assert ov.gsm.resolution == "low"
+
+
+def test_observer_prebuilt_instance_gsm16():
+    """GSMObserver16 should accept a pre-built GlobalSkyModel16 instance."""
+    gsm = GlobalSkyModel16(include_cmb=True)
+    ov = GSMObserver16(gsm=gsm)
+    assert ov.gsm is gsm
+    assert ov.gsm.include_cmb is True
+
+
+def test_observer_prebuilt_instance_gsm08():
+    """GSMObserver should accept a pre-built GlobalSkyModel instance."""
+    gsm = GlobalSkyModel(basemap="haslam")
+    ov = GSMObserver(gsm=gsm)
+    assert ov.gsm is gsm
+    assert ov.gsm.basemap == "haslam"
+
+
+def test_observer_gsm16_kwargs_generates_correctly():
+    """GSMObserver16 instantiated with kwargs should generate a valid map."""
+    ov = _setup_observer(GSMObserver16(include_cmb=True, resolution="low"))
+    sky = ov.generate(100)
+    assert sky is not None
+    assert np.any(np.isfinite(sky))
+
+
+def test_observer_default_still_works():
+    """Observers with no arguments should still work as before (backward compatibility)."""
+    for cls in (GSMObserver, GSMObserver16, LFSMObserver, HaslamObserver, McKayObserver):
+        ov = _setup_observer(cls())
+        sky = ov.generate(100)
+        assert sky is not None
+
+
 
 def test_generate_with_and_without_args():
     """Test generating without frequency argument"""
@@ -148,5 +222,10 @@ def test_generate_with_and_without_args():
 
 if __name__ == "__main__":
     test_gsm_observer(show=True)
-    test_observed_mollview()
+    for _hour in _OBS_HOURS:
+        test_observed_mollview_galactic(_hour)
+        test_observed_mollview_ecliptic(_hour)
+        test_observed_mollview_equatorial(_hour)
+        test_observed_ortho(_hour)
+        test_observed_ortho_85deg_horizon(_hour)
     test_generate_with_and_without_args()

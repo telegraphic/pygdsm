@@ -206,9 +206,18 @@ class GlobalSkyModel(BaseSkyModel):
 
 
 class GSMObserver(BaseObserver):
-    def __init__(self):
+    def __init__(self, gsm=None, **kwargs):
         """Initialize the Observer object.
 
-        Calls ephem.Observer.__init__ function and adds on gsm
+        Parameters
+        ----------
+        gsm: GlobalSkyModel instance, optional
+            A pre-instantiated sky model. If not provided, one is created
+            using any supplied keyword arguments.
+        **kwargs:
+            Keyword arguments passed to GlobalSkyModel (e.g. freq_unit,
+            basemap, spectral_index).
         """
-        super(GSMObserver, self).__init__(gsm=GlobalSkyModel)
+        if gsm is None:
+            gsm = GlobalSkyModel(**kwargs)
+        super(GSMObserver, self).__init__(gsm=gsm)
