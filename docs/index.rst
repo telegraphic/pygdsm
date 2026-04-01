@@ -14,3 +14,4 @@ PyGDSM Documentation
    pygdsm_quickstart
    pygdsm16_quickstart
    lfsm_haslam_quickstart
+   beam_patterns
