@@ -2,7 +2,7 @@
 
 project = "PyGDSM"
 author = "Danny C. Price"
-release = "1.6.4"
+release = "1.7.0"
 
 extensions = [
     "sphinx.ext.autodoc",
