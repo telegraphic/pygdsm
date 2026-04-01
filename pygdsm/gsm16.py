@@ -198,7 +198,7 @@ class GlobalSkyModel16(BaseSkyModel):
         self.interp_comps = (spl_scaling, spl1, spl2, spl3, spl4, spl5, spl6)
 
         ln_freqs = np.log(freqs_ghz)
-        comps = np.row_stack((
+        comps = np.vstack((
             spl1(ln_freqs),
             spl2(ln_freqs),
             spl3(ln_freqs),

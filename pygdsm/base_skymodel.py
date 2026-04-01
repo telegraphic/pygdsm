@@ -69,7 +69,7 @@ class BaseSkyModel(object):
     def generate(self, freqs):
         raise NotImplementedError
 
-    def view(self, idx=0, logged=False, show=False):
+    def view(self, idx=0, logged=False, show=False, **kwargs):
         """View generated map using healpy's mollweide projection.
 
         Parameters
@@ -97,8 +97,14 @@ class BaseSkyModel(object):
         if logged:
             gmap = np.log2(gmap)
 
+        if 'title' not in kwargs:
+            kwargs['title'] = "%s %s, %s" % (self.name, str(freq), self.basemap)
+
+        if 'min' not in kwargs:
+            kwargs['min'] = 0
+
         hp.mollview(
-            gmap, coord="G", title="%s %s, %s" % (self.name, str(freq), self.basemap)
+            gmap, coord="G", **kwargs
         )
 
         if show:

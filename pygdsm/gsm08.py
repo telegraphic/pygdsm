@@ -168,7 +168,7 @@ class GlobalSkyModel(BaseSkyModel):
         # Load interpolators and do interpolation
         ln_freqs = np.log(freqs_mhz)
         spl_scaling, spl1, spl2, spl3 = self.interp_comps
-        comps = np.row_stack((spl1(ln_freqs), spl2(ln_freqs), spl3(ln_freqs)))
+        comps = np.vstack((spl1(ln_freqs), spl2(ln_freqs), spl3(ln_freqs)))
         scaling = np.exp(spl_scaling(ln_freqs))
 
         # Finally, compute the dot product via einsum (awesome function)

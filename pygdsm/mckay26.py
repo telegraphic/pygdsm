@@ -8,7 +8,9 @@ import numpy as np
 from astropy import units
 from scipy.interpolate import interp1d, pchip
 
+from .base_observer import BaseObserver
 from .gsm16 import GlobalSkyModel16
+
 
 offset_coeffs = [
     10.0086158,
@@ -68,6 +70,7 @@ class McKaySkyModel(GlobalSkyModel16):
             interpolation=interpolation,
             include_cmb=include_cmb,
         )
+        self.name = "McKay26"
 
     def generate(self, freqs):
         """Generate the McKay26-corrected sky model.
@@ -106,3 +109,12 @@ class McKaySkyModel(GlobalSkyModel16):
 
         self.generated_map_data = output
         return output
+
+
+class McKayObserver(BaseObserver):
+    def __init__(self):
+        """Initialize the Observer object.
+
+        Calls ephem.Observer.__init__ function and adds on gsm
+        """
+        super(McKayObserver, self).__init__(gsm=McKaySkyModel)
