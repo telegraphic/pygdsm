@@ -3,10 +3,7 @@
 Reference:
 McKay, L. et al., Precise Measurement of the Absolute Sky Brightness at 60–350 MHz, arXiv:2509.11846v3 (2026)
 """
-import healpy as hp
 import numpy as np
-from astropy import units
-from scipy.interpolate import interp1d, pchip
 
 from .base_observer import BaseObserver
 from .gsm16 import GlobalSkyModel16
