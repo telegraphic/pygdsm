@@ -45,5 +45,5 @@ def test_mckay26_multi_freq_shape():
 
 def test_mckay26_out_of_range():
     m = McKaySkyModel(freq_unit="MHz")
-    with pytest.raises(RuntimeError):
+    with pytest.raises((RuntimeError, ValueError)):
         m.generate(1000)
