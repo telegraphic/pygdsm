@@ -4,6 +4,7 @@ Reference:
 McKay, L. et al., Precise Measurement of the Absolute Sky Brightness at 60–350 MHz, arXiv:2509.11846v3 (2026)
 """
 import numpy as np
+from astropy import units
 
 from .base_observer import BaseObserver
 from .gsm16 import GlobalSkyModel16
@@ -84,10 +85,8 @@ class McKaySkyModel(GlobalSkyModel16):
         """
         output = super().generate(freqs)
 
-        freqs_arr = np.array(freqs) * units.Unit(self.freq_unit)
-        freqs_ghz = freqs_arr.to("GHz").value
-        if isinstance(freqs_ghz, float):
-            freqs_ghz = np.array([freqs_ghz])
+        freqs_arr = np.atleast_1d(np.array(freqs) * units.Unit(self.freq_unit))
+        freqs_ghz = np.atleast_1d(freqs_arr.to("GHz").value)
 
         if np.min(freqs_ghz) < 0.06 or np.max(freqs_ghz) > 0.35:
             raise ValueError(
