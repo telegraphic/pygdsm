@@ -45,6 +45,7 @@ class BaseObserver(ephem.Observer):
         self._horizon_elevation = 0.0
         self._observed_ra = None
         self._observed_dec = None
+        self._date_cache = float(self.date)
 
     def generate(self, freq=None, obstime=None, horizon_elevation=None):
         """ Generate the observed sky for the observer, based on the GSM.
@@ -72,13 +73,20 @@ class BaseObserver(ephem.Observer):
 
         sky = self.gsm.generated_map_data
 
-        # Check if time has changed -- astropy allows None == Time() comparison
-        if obstime == self._time or obstime is None:
-            time_has_changed = False
+        # Check if time has changed, either via obstime kwarg or direct assignment to self.date
+        if obstime is not None:
+            if obstime != self._time:
+                time_has_changed = True
+                self._time = Time(obstime)  # This will catch datetimes, but Time() object should be passed
+                self.date = obstime.to_datetime()
+            else:
+                time_has_changed = False
         else:
-            time_has_changed = True
-            self._time = Time(obstime)  # This will catch datetimes, but Time() object should be passed
-            self.date = obstime.to_datetime()
+            # Detect changes to self.date set directly (e.g. ov.date = datetime(...))
+            time_has_changed = (float(self.date) != self._date_cache)
+
+        if time_has_changed:
+            self._date_cache = float(self.date)
 
         # Match pyephem convertion -- string is degrees, int/float is rad
         horizon_elevation = ephem.degrees(horizon_elevation or 0.0)
@@ -88,19 +96,6 @@ class BaseObserver(ephem.Observer):
             self._horizon_elevation = horizon_elevation
             horizon_has_changed = True
 
-        # Checking this separately encase someone tries to be smart and sets both the attribute and kwarg
-        if self._horizon_elevation < 0:
-            raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees (currently {np.rad2deg(horizon_elevation)}).")
-
-        # Match pyephem convertion -- string is degrees, int/float is rad
-        horizon_elevation = ephem.degrees(horizon_elevation or 0.0)
-        if self._horizon_elevation == horizon_elevation:
-            horizon_has_changed = False
-        else:
-            self._horizon_elevation = horizon_elevation
-            horizon_has_changed = True
-
-        # Checking this separately encase someone tries to be smart and sets both the attribute and kwarg
         if self._horizon_elevation < 0:
             raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees (currently {np.rad2deg(horizon_elevation)}).")
 

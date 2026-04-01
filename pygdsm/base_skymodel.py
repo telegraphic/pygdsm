@@ -127,6 +127,13 @@ class BaseSkyModel(object):
             Include a 2.725 K contribution from the CMB (default True).
         """
 
+        if include_cmb and self.data_unit not in ("TCMB", "TRJ", "K"):
+            raise RuntimeError(
+                f"Cannot add CMB contribution when data_unit='{self.data_unit}'. "
+                "Generate the map with data_unit='TCMB' or 'TRJ', or call "
+                "get_sky_temperature() with include_cmb=False."
+            )
+
         T_cmb = 2.725 if include_cmb else 0
 
         if freqs is not None:
