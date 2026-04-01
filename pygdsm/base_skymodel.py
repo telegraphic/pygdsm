@@ -69,7 +69,7 @@ class BaseSkyModel(object):
     def generate(self, freqs):
         raise NotImplementedError
 
-    def view(self, idx=0, logged=False, show=False):
+    def view(self, idx=0, logged=False, show=False, **kwargs):
         """View generated map using healpy's mollweide projection.
 
         Parameters
@@ -97,8 +97,14 @@ class BaseSkyModel(object):
         if logged:
             gmap = np.log2(gmap)
 
+        if 'title' not in kwargs:
+            kwargs['title'] = "%s %s, %s" % (self.name, str(freq), self.basemap)
+
+        if 'min' not in kwargs:
+            kwargs['min'] = 0
+
         hp.mollview(
-            gmap, coord="G", title="%s %s, %s" % (self.name, str(freq), self.basemap)
+            gmap, coord="G", **kwargs
         )
 
         if show:
@@ -120,6 +126,13 @@ class BaseSkyModel(object):
         include_cmb (bool):
             Include a 2.725 K contribution from the CMB (default True).
         """
+
+        if include_cmb and self.data_unit not in ("TCMB", "TRJ", "K"):
+            raise RuntimeError(
+                f"Cannot add CMB contribution when data_unit='{self.data_unit}'. "
+                "Generate the map with data_unit='TCMB' or 'TRJ', or call "
+                "get_sky_temperature() with include_cmb=False."
+            )
 
         T_cmb = 2.725 if include_cmb else 0
 

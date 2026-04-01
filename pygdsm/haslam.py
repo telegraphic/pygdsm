@@ -97,9 +97,18 @@ class HaslamSkyModel(BaseSkyModel):
 
 
 class HaslamObserver(BaseObserver):
-    def __init__(self):
+    def __init__(self, gsm=None, **kwargs):
         """Initialize the Observer object.
 
-        Calls ephem.Observer.__init__ function and adds on gsm
+        Parameters
+        ----------
+        gsm: HaslamSkyModel instance, optional
+            A pre-instantiated sky model. If not provided, one is created
+            using any supplied keyword arguments.
+        **kwargs:
+            Keyword arguments passed to HaslamSkyModel (e.g. freq_unit,
+            spectral_index, include_cmb).
         """
-        super(HaslamObserver, self).__init__(gsm=HaslamSkyModel)
+        if gsm is None:
+            gsm = HaslamSkyModel(**kwargs)
+        super(HaslamObserver, self).__init__(gsm=gsm)

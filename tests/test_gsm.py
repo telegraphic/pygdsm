@@ -5,7 +5,6 @@ test_gsm.py
 Tests for GSM module.
 """
 
-import os
 import time
 
 import h5py
@@ -101,18 +100,17 @@ def test_speed():
     print("Time taken: %2.2fs" % (t2 - t1))
 
 
-def test_write_fits():
+def test_write_fits(tmp_path):
     gsm = GlobalSkyModel()
     gsm.generate(1000)
-    gsm.write_fits("test_write_fits.fits")
+    fits_file = tmp_path / "test_write_fits.fits"
+    gsm.write_fits(str(fits_file))
 
-    d_fits = hp.read_map("test_write_fits.fits")
+    d_fits = hp.read_map(str(fits_file))
     d_gsm = gsm.generated_map_data
 
     assert d_fits.shape == d_gsm.shape
     assert np.allclose(d_fits, d_gsm)
-
-    os.remove("test_write_fits.fits")
 
 
 def test_cmb_removal():

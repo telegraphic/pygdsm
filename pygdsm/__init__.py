@@ -2,6 +2,7 @@ from .gsm08 import GlobalSkyModel, GSMObserver
 from .gsm16 import GlobalSkyModel16, GSMObserver16
 from .haslam import HaslamObserver, HaslamSkyModel
 from .lfsm import LFSMObserver, LowFrequencySkyModel
+from .mckay26 import McKaySkyModel
 from .component_data import download_map_data as download_map_data
 
 # Add aliases

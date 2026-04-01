@@ -115,9 +115,18 @@ class LowFrequencySkyModel(BaseSkyModel):
 
 
 class LFSMObserver(BaseObserver):
-    def __init__(self):
+    def __init__(self, gsm=None, **kwargs):
         """Initialize the Observer object.
 
-        Calls ephem.Observer.__init__ function and adds on gsm
+        Parameters
+        ----------
+        gsm: LowFrequencySkyModel instance, optional
+            A pre-instantiated sky model. If not provided, one is created
+            using any supplied keyword arguments.
+        **kwargs:
+            Keyword arguments passed to LowFrequencySkyModel (e.g. freq_unit,
+            include_cmb).
         """
-        super(LFSMObserver, self).__init__(gsm=LowFrequencySkyModel)
+        if gsm is None:
+            gsm = LowFrequencySkyModel(**kwargs)
+        super(LFSMObserver, self).__init__(gsm=gsm)

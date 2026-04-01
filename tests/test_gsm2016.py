@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append("/workdata/pygdsm")
-
 from datetime import datetime
 
 import healpy as hp
