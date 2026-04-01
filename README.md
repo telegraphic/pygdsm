@@ -17,7 +17,7 @@ This package includes interfaces to:
  * **Haslam:** A frequency-scaled model using a spectral index, based on the [Haslam 408 MHz](https://lambda.gsfc.nasa.gov/product/foreground/fg_2014_haslam_408_info.cfm) all-sky map.
  * **McKay:** A version of GSM2016 with a scale and offset applied to better match absolute measurements of the sky temperature across 60-350 MHz; see [McKay et al. (2025)](https://arxiv.org/abs/2509.11846).
 
-These are *not* wrappers of the original code (GSM2008 was written in Fortan and GSM2016 in C); instead they provides a uniform API with some additional features and advantages, such as healpy integration for imaging, and sky rotation for observed skies.
+These are *not* wrappers of the original code (GSM2008 was written in Fortran and GSM2016 in C); instead they provide a uniform API with some additional features and advantages, such as healpy integration for imaging, and sky rotation for observed skies.
 
 > [!TIP]
 > We thank [datacentral.org.au](https://datacentral.org.au) for hosting the component map data.
@@ -41,7 +41,7 @@ Alternatively, clone the directory:
 
         git clone https://github.com/telegraphic/pygdsm
 
-An run `pip install .`. On first run, the sky model data will be downloaded from the internet. These are about 500 MB total, and will be downloaded into your astropy cache (`~/.astropy/`). The data are hosted by [datacentral.org.au/](https://datacentral.org.au), and are also available on [Zenodo](https://zenodo.org/record/3479985#.XaASx79S-AY).
+And run `pip install .`. On first run, the sky model data will be downloaded from the internet. These are about 500 MB total, and will be downloaded into your astropy cache (`~/.astropy/`). The data are hosted by [datacentral.org.au/](https://datacentral.org.au), and are also available on [Zenodo](https://zenodo.org/record/3479985#.XaASx79S-AY).
 
 Examples
 ---------

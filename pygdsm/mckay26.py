@@ -3,10 +3,8 @@
 Reference:
 McKay, L. et al., Precise Measurement of the Absolute Sky Brightness at 60–350 MHz, arXiv:2509.11846v3 (2026)
 """
-import healpy as hp
 import numpy as np
 from astropy import units
-from scipy.interpolate import interp1d, pchip
 
 from .base_observer import BaseObserver
 from .gsm16 import GlobalSkyModel16
@@ -87,16 +85,14 @@ class McKaySkyModel(GlobalSkyModel16):
         """
         output = super().generate(freqs)
 
-        freqs_arr = np.array(freqs) * units.Unit(self.freq_unit)
-        freqs_ghz = freqs_arr.to("GHz").value
-        if isinstance(freqs_ghz, float):
-            freqs_ghz = np.array([freqs_ghz])
+        freqs_arr = np.atleast_1d(np.array(freqs) * units.Unit(self.freq_unit))
+        freqs_ghz = np.atleast_1d(freqs_arr.to("GHz").value)
 
-        try:
-            assert np.min(freqs_ghz) >= 0.06
-            assert np.max(freqs_ghz) <= 0.35
-        except AssertionError:
-            raise RuntimeError("Frequency values lie outside 60 MHz < f < 350 MHz: %s")
+        if np.min(freqs_ghz) < 0.06 or np.max(freqs_ghz) > 0.35:
+            raise ValueError(
+                "Frequency values lie outside 60 MHz < f < 350 MHz: "
+                f"{freqs_ghz}"
+            )
 
         T_offset, F_scale = generate_mckay26_correction(freqs_ghz)
 
