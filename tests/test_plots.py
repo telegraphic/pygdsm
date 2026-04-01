@@ -3,6 +3,7 @@
 from datetime import datetime
 
 import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pytest
 
@@ -16,8 +17,6 @@ from pygdsm import (
     LowFrequencySkyModel,
 )
 from pygdsm.mckay26 import McKaySkyModel
-
-matplotlib.use("Agg")
 
 BASELINE_DIR = "baseline"
 MPL_KWARGS = dict(baseline_dir=BASELINE_DIR, remove_text=True, tolerance=10)

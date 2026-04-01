@@ -75,10 +75,11 @@ class BaseObserver(ephem.Observer):
 
         # Check if time has changed, either via obstime kwarg or direct assignment to self.date
         if obstime is not None:
-            if obstime != self._time:
+            obstime_astropy = obstime if isinstance(obstime, Time) else Time(obstime)
+            if obstime_astropy != self._time:
                 time_has_changed = True
-                self._time = Time(obstime)  # This will catch datetimes, but Time() object should be passed
-                self.date = obstime.to_datetime()
+                self._time = obstime_astropy
+                self.date = obstime_astropy.to_datetime()
             else:
                 time_has_changed = False
         else:
