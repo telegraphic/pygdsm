@@ -1,0 +1,7 @@
+sphinx
+sphinx-rtd-theme
+nbsphinx
+ipython
+ipykernel
+pypandoc
+myst-parser
