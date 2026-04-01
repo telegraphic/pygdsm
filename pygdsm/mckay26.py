@@ -92,11 +92,11 @@ class McKaySkyModel(GlobalSkyModel16):
         if isinstance(freqs_ghz, float):
             freqs_ghz = np.array([freqs_ghz])
 
-        try:
-            assert np.min(freqs_ghz) >= 0.06
-            assert np.max(freqs_ghz) <= 0.35
-        except AssertionError:
-            raise RuntimeError("Frequency values lie outside 60 MHz < f < 350 MHz: %s")
+        if np.min(freqs_ghz) < 0.06 or np.max(freqs_ghz) > 0.35:
+            raise ValueError(
+                "Frequency values lie outside 60 MHz < f < 350 MHz: "
+                f"{freqs_ghz}"
+            )
 
         T_offset, F_scale = generate_mckay26_correction(freqs_ghz)
 
