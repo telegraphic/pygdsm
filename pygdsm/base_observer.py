@@ -52,6 +52,7 @@ class BaseObserver(ephem.Observer):
         self._observed_ra = None
         self._observed_dec = None
         self._date_cache = float(self.date)
+        self._location_cache = (float(self.lat), float(self.lon))
 
     def generate(self, freq=None, obstime=None, horizon_elevation=None):
         """ Generate the observed sky for the observer, based on the GSM.
@@ -95,6 +96,12 @@ class BaseObserver(ephem.Observer):
         if time_has_changed:
             self._date_cache = float(self.date)
 
+        # Detect changes to self.lat / self.lon set directly
+        location_cache = (float(self.lat), float(self.lon))
+        location_has_changed = (location_cache != self._location_cache)
+        if location_has_changed:
+            self._location_cache = location_cache
+
         # Match pyephem convertion -- string is degrees, int/float is rad
         horizon_elevation = ephem.degrees(horizon_elevation or 0.0)
         if self._horizon_elevation == horizon_elevation:
@@ -106,8 +113,8 @@ class BaseObserver(ephem.Observer):
         if self._horizon_elevation < 0:
             raise ValueError(f"Horizon elevation must be greater or equal to 0 degrees (currently {np.rad2deg(horizon_elevation)}).")
 
-        # Rotation is quite slow, only recompute if time or frequency has changed, or it has never been run
-        if time_has_changed or self.observed_sky is None or horizon_has_changed:
+        # Rotation is quite slow, only recompute if time, location, or horizon has changed, or it has never been run
+        if time_has_changed or location_has_changed or self.observed_sky is None or horizon_has_changed:
             # Get RA and DEC of zenith
             ra_zen, dec_zen = self.radec_of(0, np.pi / 2)
             sc_zen = SkyCoord(ra_zen, dec_zen, unit=("rad", "rad"))

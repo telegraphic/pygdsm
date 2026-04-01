@@ -219,6 +219,95 @@ def test_generate_with_and_without_args():
     ov.generate(obstime=now, freq=53, horizon_elevation=np.deg2rad(85.0))
     ov.generate(obstime=now, freq=52, horizon_elevation='85.0')
 
+
+# --- Tests for issue #38: observer location correctness ---
+
+def _make_observer_at(lat, lon, obs_date):
+    """Helper: create a GSMObserver16 at a given lat/lon string."""
+    ov = GSMObserver16()
+    ov.lat = lat
+    ov.lon = lon
+    ov.elev = 0
+    ov.date = obs_date
+    return ov
+
+
+def test_different_locations_produce_different_skies():
+    """Observers at widely separated lat/lon should see different skies (issue #38).
+
+    Uses the correct pyephem attributes: .lat and .lon.
+    """
+    obs_date = datetime(2025, 12, 22, 15, 0)
+    ov_south = _make_observer_at("-30", "-30", obs_date)
+    ov_north = _make_observer_at("60", "60", obs_date)
+
+    sky_south = ov_south.generate(1000)
+    sky_north = ov_north.generate(1000)
+
+    # Compare full healpix maps (always the same size regardless of masking)
+    assert not np.allclose(sky_south.data, sky_north.data), (
+        "Observers at different locations produced identical skies"
+    )
+
+
+def test_changing_location_invalidates_cache():
+    """Updating .lat/.lon on an existing observer should produce a new sky (issue #38).
+
+    The generate() cache is keyed on time and horizon, but NOT on lat/lon.
+    This test will FAIL if location changes are not detected.
+    """
+    obs_date = datetime(2025, 12, 22, 15, 0)
+    ov = GSMObserver16()
+    ov.lat = "-30"
+    ov.lon = "-30"
+    ov.elev = 0
+    ov.date = obs_date
+    sky_first = ov.generate(1000).data.copy()
+
+    # Move the observer to a very different location
+    ov.lat = "60"
+    ov.lon = "60"
+    sky_second = ov.generate(1000).data.copy()
+
+    assert not np.allclose(sky_first, sky_second), (
+        "Changing .lat/.lon did not invalidate the generate() cache"
+    )
+
+
+def test_wrong_attribute_names_are_ignored_by_ephem():
+    """Setting .latitude/.longitude (not .lat/.lon) is silently ignored by pyephem (issue #38).
+
+    pyephem's Observer uses .lat and .lon.  Setting .latitude/.longitude creates
+    plain Python instance attributes that ephem never reads, so the observer
+    position stays at its default (0 deg) regardless of the values assigned.
+    This test documents the footgun: two observers 'at' different latitudes via
+    the wrong attrs will produce the same sky as an observer at lat=0.
+    """
+    obs_date = datetime(2025, 12, 22, 15, 0)
+
+    # Observer using CORRECT attrs
+    ov_correct = GSMObserver16()
+    ov_correct.lat = "45"
+    ov_correct.lon = "0"
+    ov_correct.elev = 0
+    ov_correct.date = obs_date
+    sky_correct = ov_correct.generate(1000).data.copy()
+
+    # Observer using WRONG attrs (replicates the issue reporter's code)
+    ov_wrong = GSMObserver16()
+    ov_wrong.latitude = "45"   # ignored by ephem -- stays at default lat
+    ov_wrong.longitude = "0"   # ignored by ephem -- stays at default lon
+    ov_wrong.elev = 0
+    ov_wrong.date = obs_date
+    sky_wrong = ov_wrong.generate(1000).data.copy()
+
+    # The wrong-attr observer will NOT be at lat=45; its effective lat is the
+    # ephem default (0).  So the skies should differ.
+    assert not np.allclose(sky_correct, sky_wrong), (
+        ".latitude/.longitude appear to be respected by ephem (unexpected) — "
+        "if this assertion fails the footgun may have been fixed upstream"
+    )
+
 if __name__ == "__main__":
     test_gsm_observer(show=True)
     for _hour in _OBS_HOURS:
