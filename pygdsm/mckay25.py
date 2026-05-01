@@ -1,13 +1,14 @@
-"""mckay26.py - Scaled version of GSM 2016 across 60-350 MHz
+"""mckay25.py - Scaled version of GSM 2016 across 60-350 MHz
 
 Reference:
-McKay, L. et al., Precise Measurement of the Absolute Sky Brightness at 60–350 MHz, arXiv:2509.11846v3 (2026)
+McKay, L. et al., Precise Measurement of the Absolute Sky Brightness at 60–350 MHz, arXiv:2509.11846v3 (2025)
 """
 import numpy as np
 from astropy import units
 
 from .base_observer import BaseObserver
 from .gsm16 import GlobalSkyModel16
+from .gsm16 import T as T_CMB
 
 
 offset_coeffs = [
@@ -30,8 +31,8 @@ scale_coeffs = [
     7.41508
 ]
 
-def generate_mckay26_correction(freqs_ghz: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Generate the T_offset and F_scale from McKay et al (2026).
+def generate_mckay25_correction(freqs_ghz: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Generate the T_offset and F_scale from McKay et al (2025).
 
     """
     f_145 = np.log10(freqs_ghz / .145)
@@ -43,7 +44,7 @@ def generate_mckay26_correction(freqs_ghz: np.ndarray) -> tuple[np.ndarray, np.n
 
 
 class McKaySkyModel(GlobalSkyModel16):
-    """Sky model applying the McKay et al. (2026) correction to GSM 2016.
+    """Sky model applying the McKay et al. (2025) correction to GSM 2016.
 
     GSM2016 has an offset exceeding 100 K below 100 MHz and must be scaled up by a factor
     increasing from 1.2 below 200 MHz to 1.5 at 350 MHz.
@@ -68,10 +69,10 @@ class McKaySkyModel(GlobalSkyModel16):
             interpolation=interpolation,
             include_cmb=include_cmb,
         )
-        self.name = "McKay26"
+        self.name = "McKay25"
 
     def generate(self, freqs):
-        """Generate the McKay26-corrected sky model.
+        """Generate the McKay25-corrected sky model.
 
         Parameters
         ----------
@@ -83,7 +84,13 @@ class McKaySkyModel(GlobalSkyModel16):
         output: np.array
             Corrected healpix sky map, or array of maps for multiple frequencies.
         """
-        output = super().generate(freqs)
+        # McKay correction must be applied with CMB included; temporarily force it on
+        _user_include_cmb = self.include_cmb
+        self.include_cmb = True
+        try:
+            output = super().generate(freqs)
+        finally:
+            self.include_cmb = _user_include_cmb
 
         freqs_arr = np.atleast_1d(np.array(freqs) * units.Unit(self.freq_unit))
         freqs_ghz = np.atleast_1d(freqs_arr.to("GHz").value)
@@ -94,14 +101,18 @@ class McKaySkyModel(GlobalSkyModel16):
                 f"{freqs_ghz}"
             )
 
-        T_offset, F_scale = generate_mckay26_correction(freqs_ghz)
+        T_offset, F_scale = generate_mckay25_correction(freqs_ghz)
 
         if output.ndim == 1:
             # single frequency: output is (npix,), corrections are length-1 arrays
             output = (output - T_offset[0]) * F_scale[0]
+            if not _user_include_cmb:
+                output -= T_CMB
         else:
             # multiple frequencies: output is (nfreq, npix)
             output = (output - T_offset[:, np.newaxis]) * F_scale[:, np.newaxis]
+            if not _user_include_cmb:
+                output -= T_CMB
 
         self.generated_map_data = output
         return output

@@ -16,7 +16,7 @@ from pygdsm import (
     LFSMObserver,
     LowFrequencySkyModel,
 )
-from pygdsm.mckay26 import McKaySkyModel
+from pygdsm.mckay25 import McKaySkyModel
 
 BASELINE_DIR = "baseline"
 MPL_KWARGS = dict(baseline_dir=BASELINE_DIR, remove_text=True, tolerance=10)
@@ -55,7 +55,7 @@ def test_plot_lfsm_200mhz():
 
 
 @pytest.mark.mpl_image_compare(**MPL_KWARGS)
-def test_plot_mckay26_150mhz():
+def test_plot_mckay25_150mhz():
     gsm = McKaySkyModel(freq_unit="MHz", resolution="low")
     gsm.generate(150)
     gsm.view()

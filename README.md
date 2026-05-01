@@ -53,6 +53,13 @@ To get a quick feel of what `PyGDSM` does, have a look at the
 Q & A
 -----
 
+**Q. Why does this package download so much data when first run?**
+     The package size is dominated by the PCA healpix maps, which have about 3 million points each.
+     They're compressed using HDF5 LZF, so are actually about 3x smaller than the `*.dat`
+     files that come in the original `gsm.tar.gz` file. The next biggest thing is test data,
+     so that the output can be compared against precomputed output from `gsm.f`. The package now also includes
+     the Zheng et. al. data, which is another ~300 MB.
+
 **Q. What's the difference between this and the `gsm.f` from the main GSM2008 website?**
      The `gsm.f` is a very basic Fortran code, which reads and writes values to and from
      ASCII files, and uses a command line interface for input. If you want to run this code
@@ -80,12 +87,7 @@ Q & A
      [GSM2016 quickstart guide](http://nbviewer.ipython.org/github/telegraphic/PyGDSM/blob/master/docs/pygdsm16_quickstart.ipynb)
      to get a feel for what `PyGDSM` does.
 
-**Q. Why does this package download so much data when first run?**
-     The package size is dominated by the PCA healpix maps, which have about 3 million points each.
-     They're compressed using HDF5 LZF, so are actually about 3x smaller than the `*.dat`
-     files that come in the original `gsm.tar.gz` file. The next biggest thing is test data,
-     so that the output can be compared against precomputed output from `gsm.f`. The package now also includes
-     the Zheng et. al. data, which is another ~300 MB.
+
 
 
 References
@@ -119,13 +121,21 @@ M. Remazeilles, C. Dickinson,A.J. Banday,  M. Bigot-Sazy, T. Ghosh
 MNRAS 451, 4, 4311-4327 (2014)
 https://ui.adsabs.harvard.edu/abs/2015MNRAS.451.4311R/abstract
 
+Precise Measurement of the Absolute Sky Brightness at 60 to 350 MHz
+L. McKay, R. Subrahmanyan, A. Chippendale, P. Bolli, G. Kyriakou, A. Dunning, R. Ekers
+ArXiv, arxiv:2509.11846v3 (2025)
+https://arxiv.org/abs/2509.11846v3
 ```
 
 PyGSDM has an [ascl.net entry](https://ascl.net/1603.013):
 
 ```
-D. C. Price, 2016, 2.0.0, Astrophysics Source Code Library, 1603.013
+D. C. Price, PyGDSM: Python interface to Global Diffuse Sky Models, Astrophysics Source Code Library, ascl:1603.013 (2016)
+https://ascl.net/1603.013
 ```
+
+[![ascl:1603.013](https://img.shields.io/badge/ascl-1603.013-blue.svg)](https://ascl.net/1603.013)
+[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
 
 License
 -------

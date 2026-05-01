@@ -10,7 +10,7 @@ import pytest
 
 from pygdsm import GSMObserver, GSMObserver16, LFSMObserver
 from pygdsm import GlobalSkyModel, GlobalSkyModel16, LowFrequencySkyModel, HaslamSkyModel, HaslamObserver
-from pygdsm.mckay26 import McKaySkyModel, McKayObserver
+from pygdsm.mckay25 import McKaySkyModel, McKayObserver
 
 BASELINE_DIR = "baseline"
 MPL_KWARGS = dict(baseline_dir=BASELINE_DIR, remove_text=True, tolerance=10)

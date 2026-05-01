@@ -2,7 +2,7 @@ from .gsm08 import GlobalSkyModel, GSMObserver
 from .gsm16 import GlobalSkyModel16, GSMObserver16
 from .haslam import HaslamObserver, HaslamSkyModel
 from .lfsm import LFSMObserver, LowFrequencySkyModel
-from .mckay26 import McKaySkyModel
+from .mckay25 import McKaySkyModel, McKayObserver
 from .component_data import download_map_data as download_map_data
 
 # Add aliases
@@ -21,6 +21,8 @@ def init_gsm(gsm_name: str = "gsm08", *args, **kwargs):
                   [Dowell et. al. (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.469.4537D/abstract).
       * **Haslam:** A frequency-scaled model using a spectral index, based on the Haslam 408 MHz map
                    [Haslam 408 MHz](https://lambda.gsfc.nasa.gov/product/foreground/fg_2014_haslam_408_info.cfm).
+      * **McKay:** A version of GSM16 over 60-350 MHz with a scale-offset correction applied from McKay et al (2025)
+                   [McKay et al. (2025)](https://arxiv.org/abs/2509.11846).
 
     Args:
         gsm_name (str): One of 'gsm08', 'gsm16', 'lfsm' or 'haslam'
@@ -40,6 +42,8 @@ def init_gsm(gsm_name: str = "gsm08", *args, **kwargs):
         return LowFrequencySkyModel(*args, **kwargs)
     elif gsm_name == 'haslam':
         return HaslamSkyModel(*args, **kwargs)
+    elif gsm_name == 'mckay':
+        return McKaySkyModel(*args, **kwargs)
     else:
         raise ValueError(f'Invalid model specification "{gsm_name}"')
 
@@ -57,6 +61,8 @@ def init_observer(gsm_name: str = "gsm08", *args, **kwargs):
                   [Dowell et. al. (2017)](https://ui.adsabs.harvard.edu/abs/2017MNRAS.469.4537D/abstract).
       * **Haslam:** A frequency-scaled model using a spectral index, based on the Haslam 408 MHz map
                    [Haslam 408 MHz](https://lambda.gsfc.nasa.gov/product/foreground/fg_2014_haslam_408_info.cfm).
+      * **McKay:** A version of GSM16 over 60-350 MHz with a scale-offset correction applied from McKay et al (2025)
+                   [McKay et al. (2025)](https://arxiv.org/abs/2509.11846).
 
     Args:
         gsm_name (str): One of 'gsm08', 'gsm16', 'lfsm' or 'haslam'
@@ -76,5 +82,7 @@ def init_observer(gsm_name: str = "gsm08", *args, **kwargs):
         return LFSMObserver(*args, **kwargs)
     elif gsm_name == 'haslam':
         return HaslamObserver(*args, **kwargs)
+    elif gsm_name == 'mckay':
+        return McKayObserver(*args, **kwargs)
     else:
         raise ValueError(f'Invalid model specification "{gsm_name}"')
