@@ -1,3 +1,5 @@
+* 1.7.1 (2025.05.01) - T_CMB correction for McKay sky model, renamed McKay26 -> McKay25
+* 1.7.0 (2025.04.01) - Added McKay correction to GSM16
 * 1.6.1 (2025.07.16) - Adding zenodo as a backup data source.
 * 1.6.0 (2024.12.21) - Moved data to datacentral.org.au, now downloads maps only as needed.
                        BaseObserver.generate() now allow for the horizon to be set (thanks D. McKenna).
