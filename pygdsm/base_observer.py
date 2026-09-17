@@ -1,14 +1,19 @@
-import ephem
 import healpy as hp
 import numpy as np
-from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord
 from astropy.time import Time
 
 from pygdsm.plot_utils import show_plt
 from pygdsm.utils import hpix2sky, sky2hpix
 
 
-class BaseObserver(ephem.Observer):
+def _parse_angle_radians(value):
+    """Parse an angle given as a degree-string or a radian-float (pyephem convention)."""
+    return np.deg2rad(float(value)) if isinstance(value, str) else float(value)
+
+
+class BaseObserver:
     """Observer of the Global Sky Model.
 
     Generates the Observed sky, for a given point on Earth.
@@ -16,15 +21,13 @@ class BaseObserver(ephem.Observer):
     so that the observed 'sky' can be returned, instead of the
     full galaxy-centered GSM.
 
-    This class is based on pyephem's Observer(). The GSM bit can be thought of
-    as an 'add on' to ephem.Observer, adding the methods generate() and  view(),
-    which allows all-sky images for a given point on earth to be produced.
+    Exposes the same .lat / .lon / .elev / .date / radec_of() interface that
+    this class previously inherited from pyephem's Observer(), now backed by
+    astropy.coordinates.EarthLocation instead.
     """
 
     def __init__(self, gsm):
         """Initialize the Observer object.
-
-        Calls ephem.Observer.__init__ function and adds on gsm.
 
         Parameters
         ----------
@@ -32,14 +35,55 @@ class BaseObserver(ephem.Observer):
             A pre-instantiated sky model object, or a sky model class to be
             instantiated with default arguments.
         """
-        super(BaseObserver, self).__init__()
+        self._lat = 0.0
+        self._lon = 0.0
+        self._elev = 0.0
+        self._time = Time.now()
         self.observed_sky = None
         self.gsm = gsm() if isinstance(gsm, type) else gsm
         self._setup()
 
+    @property
+    def lat(self):
+        return self._lat
+
+    @lat.setter
+    def lat(self, value):
+        self._lat = float(value)
+
+    @property
+    def lon(self):
+        return self._lon
+
+    @lon.setter
+    def lon(self, value):
+        self._lon = float(value)
+
+    @property
+    def elev(self):
+        return self._elev
+
+    @elev.setter
+    def elev(self, value):
+        self._elev = float(value)
+
+    @property
+    def date(self):
+        return self._time
+
+    @date.setter
+    def date(self, value):
+        self._time = value if isinstance(value, Time) else Time(value)
+
+    def radec_of(self, az, alt):
+        """Compute the ICRS RA/Dec (radians) of a given topocentric az/alt."""
+        location = EarthLocation.from_geodetic(lon=self.lon * u.deg, lat=self.lat * u.deg, height=self.elev * u.m)
+        aa = SkyCoord(az=az * u.rad, alt=alt * u.rad, frame=AltAz(obstime=self.date, location=location))
+        sc = aa.transform_to("icrs")
+        return sc.ra.rad, sc.dec.rad
+
     def _setup(self):
         self._freq = 100
-        self._time = Time(self.date.datetime())
         # Generate mapping from pix <-> angles
         self.gsm.generate(self._freq)
         self._n_pix = hp.get_map_size(self.gsm.generated_map_data)
@@ -51,8 +95,8 @@ class BaseObserver(ephem.Observer):
         self._horizon_elevation = 0.0
         self._observed_ra = None
         self._observed_dec = None
-        self._date_cache = float(self.date)
-        self._location_cache = (float(self.lat), float(self.lon))
+        self._date_cache = self.date.jd
+        self._location_cache = (self.lat, self.lon)
 
     def generate(self, freq=None, obstime=None, horizon_elevation=None):
         """ Generate the observed sky for the observer, based on the GSM.
@@ -91,19 +135,19 @@ class BaseObserver(ephem.Observer):
                 time_has_changed = False
         else:
             # Detect changes to self.date set directly (e.g. ov.date = datetime(...))
-            time_has_changed = (float(self.date) != self._date_cache)
+            time_has_changed = (self.date.jd != self._date_cache)
 
         if time_has_changed:
-            self._date_cache = float(self.date)
+            self._date_cache = self.date.jd
 
         # Detect changes to self.lat / self.lon set directly
-        location_cache = (float(self.lat), float(self.lon))
+        location_cache = (self.lat, self.lon)
         location_has_changed = (location_cache != self._location_cache)
         if location_has_changed:
             self._location_cache = location_cache
 
-        # Match pyephem convertion -- string is degrees, int/float is rad
-        horizon_elevation = ephem.degrees(horizon_elevation or 0.0)
+        # Match pyephem convention -- string is degrees, int/float is rad
+        horizon_elevation = _parse_angle_radians(horizon_elevation or 0.0)
         if self._horizon_elevation == horizon_elevation:
             horizon_has_changed = False
         else:

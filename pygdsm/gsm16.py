@@ -132,6 +132,11 @@ class GlobalSkyModel16(BaseSkyModel):
             for i, map in enumerate(self.map_ni):
                 self.map_ni[i] = rotate_map(map, theta_rot, phi_rot, nest=True)
 
+        # Precompute the nest->ring pixel permutation once. hp.pixelfunc.reorder()
+        # rebuilds this same permutation from scratch on every call, which dominates
+        # generate() when called per-frequency in a loop.
+        self._nest2ring_idx = hp.ring2nest(self.nside, np.arange(hp.nside2npix(self.nside)))
+
     def generate(self, freqs):
         """Generate a global sky model at a given frequency or frequencies
 
@@ -214,9 +219,12 @@ class GlobalSkyModel16(BaseSkyModel):
 
         output = np.single(np.einsum("cf,pc,f->fp", comps, map_ni.T, scaling))
 
-        for ifreq, freq in enumerate(freqs_ghz):
-            output[ifreq] = hp.pixelfunc.reorder(output[ifreq], n2r=True)
+        # Reorder all frequencies at once using the precomputed permutation,
+        # instead of calling hp.pixelfunc.reorder() (which rebuilds the
+        # permutation from scratch) once per frequency.
+        output = output[:, self._nest2ring_idx]
 
+        for ifreq, freq in enumerate(freqs_ghz):
             # DCP 2024.03.29 - Add CMB if requested
             if self.include_cmb:
                 output[ifreq] += K_CMB2MJysr(T, 1e9 * freq)
