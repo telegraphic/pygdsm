@@ -10,16 +10,17 @@ from .component_data import LFSM_DATA_URL, download_from_url_list
 T_CMB = 2.725
 
 
-def rotate_equatorial_to_galactic(map):
+def equatorial_to_galactic_coords(nside):
     """
-    Given a map in equatorial coordinates, convert it to Galactic coordinates.
+    Precompute the pixel coordinates (in equatorial frame) needed to resample
+    a map into Galactic coordinates, for a given nside. This depends only on
+    nside, so it can be computed once and reused for every frequency/map.
     """
     rotCG = hp.rotator.Rotator(coord=("C", "G"))
-    nSides = hp.pixelfunc.npix2nside(map.size)
-    theta, phi = hp.pixelfunc.pix2ang(nSides, range(map.size))
+    npix = hp.pixelfunc.nside2npix(nside)
+    theta, phi = hp.pixelfunc.pix2ang(nside, np.arange(npix))
     theta_new, phi_new = rotCG(theta, phi, inv=True)
-    map2 = hp.get_interp_val(map, theta_new, phi_new)
-    return map2
+    return theta_new, phi_new
 
 
 class LowFrequencySkyModel(BaseSkyModel):
@@ -47,6 +48,7 @@ class LowFrequencySkyModel(BaseSkyModel):
         self.pca_map = self.h5["lfsm_component_maps_3.0deg.dat"][:]
         self.pca_components = self.h5["lfsm_components.dat"][:]
         self.nside = 256
+        self._eq2gal_theta, self._eq2gal_phi = equatorial_to_galactic_coords(self.nside)
 
         self.include_cmb = include_cmb
 
@@ -102,7 +104,9 @@ class LowFrequencySkyModel(BaseSkyModel):
                 map_out[ff] += compFunc(np.log(freqs_mhz[ff])) * self.pca_map[:, i]
             map_out[ff] *= np.exp(self.scaleFunc(np.log(freqs_mhz[ff])))
 
-            map_out[ff] = rotate_equatorial_to_galactic(map_out[ff])
+            map_out[ff] = hp.get_interp_val(
+                map_out[ff], self._eq2gal_theta, self._eq2gal_phi
+            )
 
         map_out = map_out.squeeze()
 

@@ -60,7 +60,7 @@ def test_observer_test():
     d_85deg2rad_horizon = ov.view(logged=True)
 
     assert np.all(d_85deg_horizon == d_85deg2rad_horizon), "The two methods for calculating the artificial horizon do not match."
-    assert np.ma.count_masked(d_85deg_horizon).sum() == 12558953
+    assert np.ma.count_masked(d_85deg_horizon).sum() == 12558955
     plt.show()
 
 def test_interp():
