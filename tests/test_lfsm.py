@@ -85,6 +85,29 @@ def test_cmb_removal():
     assert np.isclose(T_cmb, 2.725)
 
 
+def test_pchip_interpolation():
+    # 15 MHz sits right next to the LFSM table's sparse low-frequency edge
+    # (10, 22, 40, ... MHz), where cubic-spline overshoot is worst. PCHIP
+    # does not eliminate negative pixels everywhere (it can only prevent
+    # overshoot per PCA component, not in the final linear recombination
+    # across pixels), but it does substantially reduce them here.
+    freq = 15  # MHz
+
+    g_cubic = LowFrequencySkyModel(freq_unit="MHz", interpolation="cubic")
+    sky_cubic = g_cubic.generate(freq)
+
+    g_pchip = LowFrequencySkyModel(freq_unit="MHz", interpolation="pchip")
+    sky_pchip = g_pchip.generate(freq)
+
+    assert np.sum(sky_pchip < 0) < np.sum(sky_cubic < 0)
+
+    try:
+        LowFrequencySkyModel(freq_unit="MHz", interpolation="bogus")
+        assert False, "Expected RuntimeError for invalid interpolation method"
+    except RuntimeError:
+        pass
+
+
 if __name__ == "__main__":
     test_compare_gsm_to_old()
     # test_observer_test()
