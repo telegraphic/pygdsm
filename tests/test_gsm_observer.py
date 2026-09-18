@@ -274,6 +274,21 @@ def test_changing_location_invalidates_cache():
     )
 
 
+def test_galactic_map_is_unrotated():
+    """observer.galactic_map should match the plain GSM output, not observed_sky."""
+    ov = GSMObserver()
+    ov.lon = "-118.2"
+    ov.lat = "37.2"
+    ov.elev = 1222
+    ov.date = datetime(2000, 1, 1, 23, 0)
+    observed_sky = ov.generate(50)
+
+    direct_map = GlobalSkyModel().generate(50)
+
+    assert np.allclose(ov.galactic_map, direct_map)
+    assert not np.allclose(ov.galactic_map, observed_sky.data)
+
+
 def test_wrong_attribute_names_are_ignored_by_ephem():
     """Setting .latitude/.longitude (not .lat/.lon) is silently ignored by pyephem (issue #38).
 
