@@ -1,7 +1,7 @@
 import healpy as hp
 import numpy as np
 from astropy import units
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, pchip
 
 from .base_observer import BaseObserver
 from .base_skymodel import BaseSkyModel
@@ -26,7 +26,7 @@ def equatorial_to_galactic_coords(nside):
 class LowFrequencySkyModel(BaseSkyModel):
     """LWA1 Low Frequency Sky Model"""
 
-    def __init__(self, freq_unit="MHz", include_cmb=False):
+    def __init__(self, freq_unit="MHz", include_cmb=False, interpolation="cubic"):
         """Global sky model (GSM) class for generating sky models.
 
         Parameters
@@ -34,9 +34,24 @@ class LowFrequencySkyModel(BaseSkyModel):
         freq_unit (str): Frequency unit to use, defaults to MHz
         include_cmb (bool):  Choose whether to include the CMB. Defaults to False. A value of
                              T_CMB = 2.725 K is used if True.
+        interpolation (str): 'cubic' or 'pchip'. Choose whether to use cubic spline
+                             interpolation or piecewise cubic hermitian interpolating
+                             polynomial (PCHIP) for the PCA component coefficients.
+                             PCHIP is designed to never locally overshoot the data,
+                             whereas splines are designed to have smooth first and
+                             second derivatives; near the sparse, low-frequency edge
+                             of the model's tabulated frequencies, cubic splines can
+                             overshoot and produce unphysical negative temperatures.
+                             Defaults to 'cubic' for backwards compatibility.
         """
         data_unit = "K"
         basemap = "LFSS"
+
+        if interpolation not in ("cubic", "pchip"):
+            raise RuntimeError(
+                "INTERPOLATION ERROR: %s not supported. Only cubic, pchip are allowed."
+                % interpolation
+            )
 
         # download component data as needed using astropy cache
         LFSM_FILEPATH = download_from_url_list(LFSM_DATA_URL)
@@ -51,6 +66,7 @@ class LowFrequencySkyModel(BaseSkyModel):
         self._eq2gal_theta, self._eq2gal_phi = equatorial_to_galactic_coords(self.nside)
 
         self.include_cmb = include_cmb
+        self.interpolation_method = interpolation
 
         freqs = self.pca_components[:, 0]
         sigmas = self.pca_components[:, 1]
@@ -60,7 +76,10 @@ class LowFrequencySkyModel(BaseSkyModel):
 
         self.compFuncs = []
         for i in range(comps.shape[1]):
-            self.compFuncs.append(interp1d(np.log(freqs), comps[:, i], kind="cubic"))
+            if self.interpolation_method == "pchip":
+                self.compFuncs.append(pchip(np.log(freqs), comps[:, i]))
+            else:
+                self.compFuncs.append(interp1d(np.log(freqs), comps[:, i], kind="cubic"))
 
     def generate(self, freqs):
         """Generate a global sky model at a given frequency or frequencies
