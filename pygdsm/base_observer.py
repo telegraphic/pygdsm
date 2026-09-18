@@ -90,6 +90,14 @@ class BaseObserver:
         self._n_side = hp.npix2nside(self._n_pix)
         self._theta, self._phi = hp.pix2ang(self._n_side, np.arange(self._n_pix))
 
+        # Galactic -> Equatorial transform is fixed for the object's lifetime
+        # (depends only on nside), so it's computed once here rather than on
+        # every generate() call.
+        rot = hp.Rotator(coord=["G", "C"])
+        eq_theta, eq_phi = rot(self._theta, self._phi)
+        self._dec_allsky = 90.0 - np.abs(eq_theta * (180 / np.pi))
+        self._ra_allsky = ((eq_phi + 2 * np.pi) % (2 * np.pi)) * (180 / np.pi)
+
         self._pix0 = None
         self._mask = None
         self._horizon_elevation = 0.0
@@ -114,7 +122,8 @@ class BaseObserver:
         -------
         observed_sky: np.array
             Numpy array representing the healpix image, centered on zenith,
-            with below the horizon masked.
+            with below the horizon masked. See `.galactic_map` for the
+            un-rotated galactic-frame map.
         """
         # Check to see if frequency has changed.
         if freq is not None:
@@ -175,24 +184,14 @@ class BaseObserver:
             mask[pix_visible] = 0
             self._mask = mask
 
-            # Transform from Galactic coordinates to Equatorial
-            rot = hp.Rotator(coord=["G", "C"])
-            eq_theta, eq_phi = rot(self._theta, self._phi)
-
-            # Convert from Equatorial colatitude and longitude to normal RA and DEC
-            dec = 90.0 - np.abs(eq_theta * (180 / np.pi))
-            ra = ((eq_phi + 2 * np.pi) % (2 * np.pi)) * (180 / np.pi)
-
             # Apply rotation to convert from Galactic to Equatorial and center on zenith
             hrot = hp.Rotator(rot=[ra_zen, dec_zen], coord=["G", "C"], inv=True)
             g0, g1 = hrot(self._theta, self._phi)
             pix0 = hp.ang2pix(self._n_side, g0, g1)
             self._pix0 = pix0
 
-            dec_rotated = dec[self._pix0]
-            ra_rotated = ra[self._pix0]
-            self._observed_ra = ra_rotated
-            self._observed_dec = dec_rotated
+            self._observed_ra = self._ra_allsky[self._pix0]
+            self._observed_dec = self._dec_allsky[self._pix0]
 
         sky_rotated = sky[self._pix0]
         mask_rotated = self._mask[self._pix0]
@@ -201,6 +200,16 @@ class BaseObserver:
         self.observed_sky.mask = mask_rotated
 
         return self.observed_sky
+
+    @property
+    def galactic_map(self):
+        """The un-rotated galactic-frame map from the last generate() call.
+
+        Unlike `observed_sky`, this is not rotated to the observer's zenith
+        or masked below the horizon -- it's the raw GSM output, equivalent to
+        calling `self.gsm.generate(freq)` directly.
+        """
+        return self.gsm.generated_map_data
 
     def view(self, logged=False, show=False, **kwargs):
         """View the local sky, in orthographic projection.
